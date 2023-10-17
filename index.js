@@ -11,6 +11,11 @@ app.use(express.json());
 
 app.use(cookieParser());
 
+//* Routes
+const authenticationRoute = require("./routes/authentication");
+
+app.use("/auth", authenticationRoute);
+
 const PORT = process.env.PORT;
 
 const server = app.listen(PORT, () => {
