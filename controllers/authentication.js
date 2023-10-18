@@ -17,12 +17,14 @@ exports.register = async (req, res, next) => {
     });
 
     //! create the token
-    sendTokenResponse(user, 200, res);
+    await sendTokenResponse(user, 200, res);
 
+    /*
     res.status(201).json({
       success: true,
       message: "You are registered.",
     });
+    */
   } catch (err) {
     next(err);
   }
@@ -54,7 +56,7 @@ exports.login = async (req, res, next) => {
       return next(new ErrorResponse("Wrong password!", 400));
     }
 
-    sendTokenResponse(user, 200, res);
+    await sendTokenResponse(user, 200, res);
   } catch (err) {
     return next(
       new ErrorResponse("Cannot login right now. Try again later", 400)
