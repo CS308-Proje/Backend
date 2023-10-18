@@ -6,22 +6,25 @@ const { matchPassword, sendTokenResponse } = require("../utils/userUtils");
 //* Register User
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, username, email, password } = req.body;
 
     const user = await User.create({
       name,
+      username,
       email,
       password,
       role: "normal",
     });
 
     //! create the token
-    sendTokenResponse(user, 200, res);
+    await sendTokenResponse(user, 200, res);
 
+    /*
     res.status(201).json({
       success: true,
       message: "You are registered.",
     });
+    */
   } catch (err) {
     next(err);
   }
@@ -53,7 +56,7 @@ exports.login = async (req, res, next) => {
       return next(new ErrorResponse("Wrong password!", 400));
     }
 
-    sendTokenResponse(user, 200, res);
+    await sendTokenResponse(user, 200, res);
   } catch (err) {
     return next(
       new ErrorResponse("Cannot login right now. Try again later", 400)
