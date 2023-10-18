@@ -6,10 +6,11 @@ const { matchPassword, sendTokenResponse } = require("../utils/userUtils");
 //* Register User
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, username, email, password } = req.body;
 
     const user = await User.create({
       name,
+      username,
       email,
       password,
       role: "normal",
