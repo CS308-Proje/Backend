@@ -15,6 +15,9 @@ const authenticationRoute = require("./routes/authentication");
 
 app.use("/auth", authenticationRoute);
 
+const friendsRoutes = require('./routes/friends'); // Update the path to the correct routes file
+app.use('/friends', friendsRoutes);
+
 const PORT = process.env.PORT;
 
 const server = app.listen(PORT, () => {
