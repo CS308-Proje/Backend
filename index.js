@@ -18,6 +18,14 @@ const songRoute = require("./routes/song");
 app.use("/auth", authenticationRoute);
 app.use(songRoute);
 
+const friendsRoutes = require('./routes/friends'); 
+app.use('/friends', friendsRoutes);
+
+const invitationsRoutes = require('./routes/invitation');
+app.use('/invitation', invitationsRoutes);
+
+//*
+
 const PORT = process.env.PORT;
 
 const server = app.listen(PORT, () => {

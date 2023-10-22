@@ -1,1 +1,2 @@
-Fikirler: Nested şekilde bilgi tutmak yerine ayrı ayrı tutsak daha iyi olur. Mesela albümlerin altına yüzlerce song id geleceğine AlbumAndSong diye başka bir Model oluşturup her buraya müziği atan user id'si, album id ve song id eklersek data daha kolay okunur. Ayrıca, silerken rahatlarız.
+Updated index.js and friends.js in controller and route folders
+Updated index.js and added invitation.js model, controller and route
