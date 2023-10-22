@@ -12,11 +12,15 @@ app.use(cookieParser());
 
 //* Routes
 const authenticationRoute = require("./routes/authentication");
-
 app.use("/auth", authenticationRoute);
 
-const friendsRoutes = require('./routes/friends'); // Update the path to the correct routes file
+const friendsRoutes = require('./routes/friends'); 
 app.use('/friends', friendsRoutes);
+
+const invitationsRoutes = require('./routes/invitation');
+app.use('/invitation', invitationsRoutes);
+
+//*
 
 const PORT = process.env.PORT;
 
