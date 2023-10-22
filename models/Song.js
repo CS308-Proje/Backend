@@ -10,35 +10,27 @@ const SongSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please enter a song name."],
   },
-  performers: [
+  artists: [
     {
       type: String,
       required: [true, "Please add artist(s)"],
     },
   ],
-  album: {
+
+  artistId: [
+    {
+      type: mongoose.Types.ObjectId,
+      ref: "Artist",
+    },
+  ],
+  albumName: {
     type: String,
     required: [true, "Please add album."],
   },
-  length: {
-    type: String,
-    required: [true, "Please add length."],
-  },
-  tempo: {
-    type: String,
-    required: [true, "Please add length."],
-  },
-  genre: {
-    type: String,
-    required: [true, "Please add genre."],
-  },
-  mood: {
-    type: String,
-    required: [true, "Please add genre."],
-  },
-  releaseYear: {
-    type: Date,
-    required: [true, "Please enter a release date."],
+
+  albumId: {
+    type: mongoose.Types.ObjectId,
+    ref: "Album",
   },
 
   createdAt: {

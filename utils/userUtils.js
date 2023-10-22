@@ -23,7 +23,7 @@ exports.sendTokenResponse = async (user, statusCode, res) => {
     expires: new Date(
       Date.now() + process.env.JWT_COOKIE_EXPIRE * 24 * 60 * 60 * 1000
     ),
-    httpOnly: true, //? An HttpOnly Cookie is a tag added to a browser cookie that prevents client-side scripts from accessing data.
+    httpOnly: false, //? An HttpOnly Cookie is a tag added to a browser cookie that prevents client-side scripts from accessing data.
   };
 
   return res.status(statusCode).cookie("token", token, options).json({
