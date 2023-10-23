@@ -9,6 +9,11 @@ const AlbumSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please enter an album name."],
   },
+  songId: [
+    {
+      type: mongoose.Types.ObjectId,
+    },
+  ],
 
   createdAt: {
     type: Date,

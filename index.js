@@ -7,7 +7,7 @@ const connectDB = require("./config/database");
 dotenv.config({ path: "./config/config.env" });
 connectDB();
 const app = express();
-app.use(cors({ credentials: true, origin: true }));
+app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(express.json());
 app.use(cookieParser());
 
@@ -18,11 +18,11 @@ const songRoute = require("./routes/song");
 app.use("/auth", authenticationRoute);
 app.use(songRoute);
 
-const friendsRoutes = require('./routes/friends'); 
-app.use('/friends', friendsRoutes);
+const friendsRoutes = require("./routes/friends");
+app.use("/friends", friendsRoutes);
 
-const invitationsRoutes = require('./routes/invitation');
-app.use('/invitation', invitationsRoutes);
+const invitationsRoutes = require("./routes/invitation");
+app.use("/invitation", invitationsRoutes);
 
 //*
 

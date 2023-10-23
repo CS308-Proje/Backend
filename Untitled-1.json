@@ -1,0 +1,18 @@
+{
+    "track_name": "True Colors",
+    "popularity": 73,
+    "duration_ms": 227600,
+    "album_name": "True Colors",
+    "artists_names": "Cyndi Lauper",
+    "artist_genres": "dance pop;new wave pop;permanent wave;soft rock",
+    "acousticness": 0.701,
+    "danceability": 0.397,
+    "energy": 0.207,
+    "instrumentalness": 0.0000307,
+    "liveness": 0.116,
+    "mode": 1,
+    "speechiness": 0.0331,
+    "tempo": 171.282,
+    "valence": 0.268,
+    "year": 1986
+}
