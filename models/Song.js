@@ -28,6 +28,11 @@ const SongSchema = new mongoose.Schema({
     required: [true, "Please add album."],
   },
 
+  albumId: {
+    type: mongoose.Types.ObjectId,
+    ref: "Album",
+  },
+
   createdAt: {
     type: Date,
     default: Date.now(),

@@ -7,6 +7,7 @@ const ArtistSchema = new mongoose.Schema({
   },
   artistName: {
     type: String,
+    required: true,
   },
 
   createdAt: {

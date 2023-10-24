@@ -12,16 +12,17 @@ app.use(express.json());
 app.use(cookieParser());
 
 //* Routes
-const authenticationRoute = require("./routes/authentication");
-const songRoute = require("./routes/song");
-
-app.use("/auth", authenticationRoute);
-app.use(songRoute);
-
+const authenticationRoutes = require("./routes/authentication");
+const songRoutes = require("./routes/song");
 const friendsRoutes = require("./routes/friends");
-app.use("/friends", friendsRoutes);
-
 const invitationsRoutes = require("./routes/invitation");
+const albumRoutes = require("./routes/album");
+const userRoutes = require("./routes/user");
+app.use("/auth", authenticationRoutes);
+app.use(songRoutes);
+app.use(albumRoutes);
+app.use(userRoutes);
+app.use("/friends", friendsRoutes);
 app.use("/invitation", invitationsRoutes);
 
 //*
