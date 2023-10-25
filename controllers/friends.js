@@ -15,7 +15,7 @@ exports.addFriend = async (req, res, next) => {
       return next(new ErrorResponse('User or friend not found', 404));
     }
 
-    //Check if friend is already is in array
+    
     if (user.friends.includes(friendId)) {
       return res.status(400).json({
         success: false,
@@ -25,8 +25,10 @@ exports.addFriend = async (req, res, next) => {
 
    
     user.friends.push(friendId);
+    friend.friends.push(userId);
     
     await user.save();
+    await friend.save();
 
     res.status(200).json({
       success: true,
