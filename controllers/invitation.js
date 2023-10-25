@@ -4,6 +4,7 @@ const router = express.Router();
 const Invitation = require('../models/Invitation');
 const User = require('../models/User');
 const { addFriend } = require('../controllers/friends');
+const ErrorResponse = require("../error/error-response");
 
 //Send Invitation
 exports.createInvitation = async (req, res, next) => {
@@ -65,8 +66,6 @@ exports.deleteInvitation = async (req, res, next) => {
 };
 
 
-
-
 // Update Invitation status
 exports.updateStatus = async (req, res, next) => {
   try {
@@ -75,29 +74,39 @@ exports.updateStatus = async (req, res, next) => {
 
     const invitation = await Invitation.findById(invitationId);
 
+    const userId = invitation.user_id;
+    const friendId = invitation.target_user_id;
+
     if (!invitation) {
       return res.status(404).json({ message: 'Invitation not found' });
     }
 
     if (status === 'accepted') {
-      
-      await addFriend({ body: { userId: invitation.user_id, friendId: invitation.target_user_id } });
-      await addFriend({ body: { userId: invitation.target_user_id, friendId: invitation.user_id } });
-      return res.status(201).json({message: 'You have accepted the invite'});
+      const result1 = await addFriend({
+        body: {userId, friendId}
+      });
 
+      
+      return res.status(201).json({ message: 'You have accepted the invite' });
+
+      
     } else if (status === 'rejected') {
-      await Invitation.deleteOne({ _id: invitationId }); 
-      return res.status(201).json({message: 'Invitation deleted!'});
+      await Invitation.deleteOne({ _id: invitationId });
+      return res.status(201).json({ message: 'Invitation deleted!' });
     }
 
-    invitation.status = status;
-    await invitation.save();
-
-    res.status(200).json({ message: 'Invitation status updated' });
+    if (invitation.status) {
+      invitation.status = status;
+      await invitation.save();
+      res.status(200).json({ message: 'Invitation status updated' });
+    } else {
+      res.status(400).json({ message: 'Invalid status provided' });
+    }
   } catch (err) {
     next(err);
   }
 };
+
 
 
 //Gets all pending invitations of the user
