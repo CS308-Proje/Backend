@@ -66,31 +66,28 @@ exports.addSong = async (req, res, next) => {
     const userId = user.id;
 
     const songData = { userId, ...req.body };
-    songData.artistId = [];
-    console.log(songData.artists);
 
-    for (let index = 0; index < songData.artists.length; index++) {
-      const artist = await Artist.create({
-        userId: songData.userId,
-        artistName: songData.artists[index],
-      });
-
-      songData.artistId.push(artist._id);
-    }
+    const albumName = req.body.albumName;
 
     const album = await Album.create({
       userId: userId,
-      name: songData.albumName,
+      name: albumName,
     });
 
-    songData.albumId = album._id;
-
-    const song = await Song.create(songData);
-
-    res.status(201).json({
-      success: true,
-      song,
+    const artist = await Artist.create({
+      userId: userId,
+      artistName: req.body.mainArtistName,
+      $push: { albumId: album._id },
     });
+
+    songData
+
+    await Album.updateOne({
+      {_id: album._id},
+      {$push: {arti}}
+    })
+
+    await album.updateOne()
   } catch (err) {
     res.status(400).json({
       error: err,

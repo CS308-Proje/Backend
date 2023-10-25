@@ -10,6 +10,11 @@ const ArtistSchema = new mongoose.Schema({
     required: true,
   },
 
+  albumId: [
+    {
+      type: mongoose.Types.ObjectId,
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now(),

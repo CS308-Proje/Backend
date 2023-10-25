@@ -10,14 +10,21 @@ const SongSchema = new mongoose.Schema({
     type: String,
     required: [true, "Please enter a song name."],
   },
-  artists: [
+
+  mainArtistName: {
+    type: String,
+    required: true,
+  },
+  mainArtistId: {
+    type: mongoose.Schema.ObjectId,
+  },
+  featuringArtistNames: [
     {
       type: String,
-      required: [true, "Please add artist(s)"],
     },
   ],
 
-  artistId: [
+  featuringArtistId: [
     {
       type: mongoose.Types.ObjectId,
       ref: "Artist",
