@@ -4,6 +4,12 @@ const Song = require("../models/Song");
 const User = require("../models/User");
 const Album = require("../models/Album");
 const Artist = require("../models/Artist");
+const {
+  isAlbumExits,
+  isSongExists,
+  isArtistExists,
+  isFeaturingArtistExist,
+} = require("../validation/validate-song");
 
 exports.getSongs = async (req, res, next) => {
   //* Buraya pagination eklenecek
@@ -69,15 +75,32 @@ exports.addSong = async (req, res, next) => {
 
     const albumName = req.body.albumName;
 
-    const album = await Album.create({
-      userId: userId,
-      name: albumName,
-    });
+    let album = null;
+    let artist = null;
 
-    const artist = await Artist.create({
-      userId: userId,
-      artistName: req.body.mainArtistName,
-    });
+    if ((await isAlbumExits(songData)) === false) {
+      album = await Album.create({
+        userId: userId,
+        name: albumName,
+      });
+    } else {
+      album = await Album.findOne({
+        userId: userId,
+        name: albumName,
+      });
+    }
+
+    if ((await isArtistExists(songData)) === false) {
+      artist = await Artist.create({
+        userId: userId,
+        artistName: req.body.mainArtistName,
+      });
+    } else {
+      artist = await Artist.findOne({
+        userId: userId,
+        artistName: req.body.mainArtistName,
+      });
+    }
 
     album.artistId = artist._id;
 
@@ -88,11 +111,22 @@ exports.addSong = async (req, res, next) => {
     songData.featuringArtistId = [];
     for (let index = 1; index < req.body.featuringArtistNames.length; index++) {
       const featuringArtistName = req.body.featuringArtistNames[index];
-      const artist = await Artist.create({
-        userId: userId,
-        artistName: featuringArtistName,
-      });
-      songData.featuringArtistId.push(artist._id);
+      let featuringArtist;
+      if (
+        (await isFeaturingArtistExist(featuringArtistName, userId)) === false
+      ) {
+        featuringArtist = await Artist.create({
+          userId: userId,
+          artistName: featuringArtistName,
+        });
+      } else {
+        featuringArtist = await Artist.findOne({
+          userId: userId,
+          artistName: featuringArtistName,
+        });
+      }
+
+      songData.featuringArtistId.push(featuringArtist._id);
     }
     const song = await Song.create({
       userId: songData.userId,

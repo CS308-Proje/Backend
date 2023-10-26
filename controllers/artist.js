@@ -101,19 +101,24 @@ exports.deleteArtist = async (req, res, next) => {
     const user = await User.findById(req.user.id);
     const userId = user.id;
 
-    const artist = await Artist.findById({
-      userId: userId,
-      _id: req.params.id,
-    });
-
     const songs = await Song.deleteMany({
       userId: userId,
       mainArtistId: req.params.id,
     });
 
-    const artistDeleted = await Artist.findByIdAndDelete({
+    const albums = await Album.deleteOne({
+      userId: userId,
+      artistId: req.params.id,
+    });
+
+    const artist = await Artist.deleteOne({
       userId: userId,
       _id: req.params.id,
+    });
+
+    return res.status(200).json({
+      message: "Artist is deleted.",
+      success: true,
     });
   } catch (err) {
     res.status(400).json({
