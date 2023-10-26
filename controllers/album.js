@@ -3,6 +3,7 @@ const express = require("express");
 const User = require("../models/User");
 const Album = require("../models/Album");
 const Song = require("../models/Song");
+const Artist = require("../models/Artist");
 
 exports.getAlbums = async (req, res, next) => {
   try {
@@ -127,6 +128,11 @@ exports.deleteAlbum = async (req, res, next) => {
     const user = await User.findById(req.user.id);
     const userId = user.id;
 
+    const songsForArtist = await Song.findById({
+      userId: userId,
+      albumId: req.params.id,
+    });
+
     const songs = await Song.deleteMany({
       userId: userId,
       albumId: req.params.id,
@@ -138,6 +144,11 @@ exports.deleteAlbum = async (req, res, next) => {
         success: false,
       });
     }
+
+    const artist = await Artist.findByIdAndDelete({
+      userId: userId,
+      _id: songsForArtist.mainArtistId,
+    });
 
     const album = await Album.findByIdAndDelete({
       userId: userId,

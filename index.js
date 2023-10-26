@@ -18,10 +18,12 @@ const friendsRoutes = require("./routes/friends");
 const invitationsRoutes = require("./routes/invitation");
 const albumRoutes = require("./routes/album");
 const userRoutes = require("./routes/user");
+const artistRoutes = require("./routes/artist");
 app.use("/auth", authenticationRoutes);
 app.use(songRoutes);
 app.use(albumRoutes);
 app.use(userRoutes);
+app.use(artistRoutes);
 app.use("/friends", friendsRoutes);
 app.use("/invitation", invitationsRoutes);
 

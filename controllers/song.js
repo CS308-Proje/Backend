@@ -63,7 +63,7 @@ exports.addSong = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
 
-    const userId = user.id;
+    const userId = user._id;
 
     const songData = { userId, ...req.body };
 
@@ -77,17 +77,45 @@ exports.addSong = async (req, res, next) => {
     const artist = await Artist.create({
       userId: userId,
       artistName: req.body.mainArtistName,
-      $push: { albumId: album._id },
     });
 
-    songData
+    await artist.albumId.push(album._id);
 
-    await Album.updateOne({
-      {_id: album._id},
-      {$push: {arti}}
-    })
+    await artist.save();
 
-    await album.updateOne()
+    songData.albumId = album._id;
+    songData.mainArtistId = artist._id;
+    songData.featuringArtistId = [];
+    for (let index = 1; index < req.body.featuringArtistNames.length; index++) {
+      const featuringArtistName = req.body.featuringArtistNames[index];
+      const artist = await Artist.create({
+        userId: userId,
+        artistName: featuringArtistName,
+      });
+      songData.featuringArtistId.push(artist._id);
+    }
+    const song = await Song.create({
+      userId: songData.userId,
+      songName: songData.songName,
+      mainArtistName: songData.mainArtistName,
+      mainArtistId: songData.mainArtistId,
+      featuringArtistNames: songData.featuringArtistNames,
+      featuringArtistId: songData.featuringArtistId,
+      albumName: songData.albumName,
+      albumId: songData.albumId,
+    });
+
+    const albumModify = await Album.updateOne(
+      { _id: album._id },
+      {
+        $push: { songId: song._id },
+      }
+    );
+
+    return res.status(201).json({
+      song,
+      success: true,
+    });
   } catch (err) {
     res.status(400).json({
       error: err,
@@ -101,11 +129,19 @@ exports.deleteSong = async (req, res, next) => {
     const user = await User.findById(req.user.id);
 
     const userId = user.id;
-    const song = await Song.findByIdAndDelete({
+    const song = await Song.findById({
       _id: req.params.id,
       userId: userId,
     });
 
+    const albumId = song.albumId;
+
+    const updatedAlbum = await Album.findByIdAndUpdate(
+      albumId,
+      { $pull: { songId: song._id } },
+      { new: true }
+    );
+    const songDeleted = await Song.findByIdAndDelete(req.params.id);
     res.status(200).json({
       message: "Song is deleted.",
       success: true,
