@@ -79,9 +79,9 @@ exports.addSong = async (req, res, next) => {
       artistName: req.body.mainArtistName,
     });
 
-    await artist.albumId.push(album._id);
+    album.artistId = artist._id;
 
-    await artist.save();
+    await album.save();
 
     songData.albumId = album._id;
     songData.mainArtistId = artist._id;
@@ -105,13 +105,6 @@ exports.addSong = async (req, res, next) => {
       albumId: songData.albumId,
     });
 
-    const albumModify = await Album.updateOne(
-      { _id: album._id },
-      {
-        $push: { songId: song._id },
-      }
-    );
-
     return res.status(201).json({
       song,
       success: true,
@@ -129,19 +122,11 @@ exports.deleteSong = async (req, res, next) => {
     const user = await User.findById(req.user.id);
 
     const userId = user.id;
-    const song = await Song.findById({
+    const song = await Song.findByIdAndDelete({
       _id: req.params.id,
       userId: userId,
     });
 
-    const albumId = song.albumId;
-
-    const updatedAlbum = await Album.findByIdAndUpdate(
-      albumId,
-      { $pull: { songId: song._id } },
-      { new: true }
-    );
-    const songDeleted = await Song.findByIdAndDelete(req.params.id);
     res.status(200).json({
       message: "Song is deleted.",
       success: true,

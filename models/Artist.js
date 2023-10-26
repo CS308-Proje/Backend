@@ -8,13 +8,9 @@ const ArtistSchema = new mongoose.Schema({
   artistName: {
     type: String,
     required: true,
+    unique: true,
   },
 
-  albumId: [
-    {
-      type: mongoose.Types.ObjectId,
-    },
-  ],
   createdAt: {
     type: Date,
     default: Date.now(),

@@ -9,8 +9,6 @@ router.get("/albums", isAuth.protect, albumController.getAlbums);
 
 router.get("/albums/:id", isAuth.protect, albumController.getAlbum);
 
-router.post("/albums", isAuth.protect, albumController.addAlbum);
-
 router.delete("/albums/:id", isAuth.protect, albumController.deleteAlbum);
 
 router.put("/albums/:id", isAuth.protect, albumController.updateAlbum);

@@ -9,8 +9,6 @@ router.get("/artists", isAuth.protect, artistContoller.getArtists);
 
 router.get("/artists/:id", isAuth.protect, artistContoller.getArtist);
 
-router.post("/artists", isAuth.protect, artistContoller.addArtist);
-
 router.delete("/artists/:id", isAuth.protect, artistContoller.deleteArtist);
 
 router.put("/artists/:id", isAuth.protect, artistContoller.updateArtist);

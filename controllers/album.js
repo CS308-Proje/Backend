@@ -61,34 +61,6 @@ exports.getAlbum = async (req, res, next) => {
   }
 };
 
-exports.addAlbum = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.user.id);
-    const userId = user.id;
-
-    const { name } = req.body;
-
-    const album = await Album.create({ name: name });
-
-    if (!album) {
-      return res.status(400).json({
-        message: "No album is found.",
-        success: false,
-      });
-    }
-
-    return res.status(201).json({
-      album,
-      success: true,
-    });
-  } catch (err) {
-    res.status(400).json({
-      error: err,
-      success: false,
-    });
-  }
-};
-
 exports.updateAlbum = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -128,11 +100,6 @@ exports.deleteAlbum = async (req, res, next) => {
     const user = await User.findById(req.user.id);
     const userId = user.id;
 
-    const songsForArtist = await Song.findById({
-      userId: userId,
-      albumId: req.params.id,
-    });
-
     const songs = await Song.deleteMany({
       userId: userId,
       albumId: req.params.id,
@@ -144,17 +111,10 @@ exports.deleteAlbum = async (req, res, next) => {
         success: false,
       });
     }
-
-    const artist = await Artist.findByIdAndDelete({
-      userId: userId,
-      _id: songsForArtist.mainArtistId,
-    });
-
     const album = await Album.findByIdAndDelete({
       userId: userId,
       _id: req.params.id,
     });
-
     if (!album) {
       return res.status(400).json({
         message: "Could not delete songs or song.",
