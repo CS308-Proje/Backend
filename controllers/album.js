@@ -3,6 +3,7 @@ const express = require("express");
 const User = require("../models/User");
 const Album = require("../models/Album");
 const Song = require("../models/Song");
+const Artist = require("../models/Artist");
 
 exports.getAlbums = async (req, res, next) => {
   try {
@@ -49,34 +50,6 @@ exports.getAlbum = async (req, res, next) => {
     }
 
     return res.status(200).json({
-      album,
-      success: true,
-    });
-  } catch (err) {
-    res.status(400).json({
-      error: err,
-      success: false,
-    });
-  }
-};
-
-exports.addAlbum = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.user.id);
-    const userId = user.id;
-
-    const { name } = req.body;
-
-    const album = await Album.create({ name: name });
-
-    if (!album) {
-      return res.status(400).json({
-        message: "No album is found.",
-        success: false,
-      });
-    }
-
-    return res.status(201).json({
       album,
       success: true,
     });
@@ -138,12 +111,10 @@ exports.deleteAlbum = async (req, res, next) => {
         success: false,
       });
     }
-
     const album = await Album.findByIdAndDelete({
       userId: userId,
       _id: req.params.id,
     });
-
     if (!album) {
       return res.status(400).json({
         message: "Could not delete songs or song.",

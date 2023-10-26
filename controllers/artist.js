@@ -63,37 +63,6 @@ exports.getArtist = async (req, res, next) => {
   }
 };
 
-exports.addArtist = async (req, res, next) => {
-  try {
-    const user = await User.findById(req.user.id);
-
-    const userId = user.id;
-
-    const { artistName } = req.body;
-
-    const artist = await Artist.create({
-      userId: userId,
-      artistName: artistName,
-    });
-
-    if (!artist) {
-      return res.status(400).json({
-        message: "No artist is found.",
-        success: false,
-      });
-    }
-    return res.status(201).json({
-      artist,
-      success: true,
-    });
-  } catch (err) {
-    res.status(400).json({
-      error: err,
-      success: false,
-    });
-  }
-};
-
 exports.updateArtist = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -126,24 +95,26 @@ exports.updateArtist = async (req, res, next) => {
     });
   }
 };
-/* //* Daha sonra bakacagim
+
 exports.deleteArtist = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
     const userId = user.id;
 
-    const songs = await Song.find({
+    const artist = await Artist.findById({
       userId: userId,
+      _id: req.params.id,
     });
 
-    for (let index = 0; index < songs.length; index++) {
-      if (songs[0].artistId.includes(req.params.id)) {
-        const album = await Album.findByIdAndDelete({
-          _id: songs[index].albumId,
-          userId: userId,
-        });
-      }
-    }
+    const songs = await Song.deleteMany({
+      userId: userId,
+      mainArtistId: req.params.id,
+    });
+
+    const artistDeleted = await Artist.findByIdAndDelete({
+      userId: userId,
+      _id: req.params.id,
+    });
   } catch (err) {
     res.status(400).json({
       error: err,
@@ -151,4 +122,3 @@ exports.deleteArtist = async (req, res, next) => {
     });
   }
 };
-*/
