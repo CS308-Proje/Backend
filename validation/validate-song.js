@@ -55,9 +55,25 @@ const isFeaturingArtistExist = async (name, id) => {
   return true;
 };
 
+const isSongInDB = async songData => {
+  const song = await Song.findOne({
+    userId: songData.userId,
+    songName: songData.songName,
+    mainArtistName: songData.mainArtistName,
+    albumName: songData.albumName,
+  });
+
+  if (!song) {
+    return false;
+  }
+
+  return true;
+};
+
 module.exports = {
   isAlbumExits,
   isSongExists,
   isArtistExists,
   isFeaturingArtistExist,
+  isSongInDB,
 };

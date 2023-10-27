@@ -9,6 +9,7 @@ const {
   isSongExists,
   isArtistExists,
   isFeaturingArtistExist,
+  isSongInDB,
 } = require("../validation/validate-song");
 
 exports.getSongs = async (req, res, next) => {
@@ -72,6 +73,13 @@ exports.addSong = async (req, res, next) => {
     const userId = user._id;
 
     const songData = { userId, ...req.body };
+
+    if ((await isSongInDB(songData)) === true) {
+      return res.status(400).json({
+        message: "Song is already in the database!",
+        success: false,
+      });
+    }
 
     const albumName = req.body.albumName;
 
