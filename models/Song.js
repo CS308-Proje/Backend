@@ -39,7 +39,20 @@ const SongSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     ref: "Album",
   },
+  popularity: {
+    type: Number,
+  },
 
+  duration_ms: {
+    type: Number,
+  },
+
+  release_date: {
+    type: Date,
+  },
+  albumImg: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now(),

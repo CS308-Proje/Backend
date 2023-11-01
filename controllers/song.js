@@ -4,6 +4,8 @@ const Song = require("../models/Song");
 const User = require("../models/User");
 const Album = require("../models/Album");
 const Artist = require("../models/Artist");
+const { getSpotifyAccessToken } = require("../config/spotifyAPI");
+const SpotifyWebApi = require("spotify-web-api-node");
 const {
   isAlbumExits,
   isSongExists,
@@ -68,6 +70,13 @@ exports.getSong = async (req, res, next) => {
 
 exports.addSong = async (req, res, next) => {
   try {
+    const token = await getSpotifyAccessToken();
+    const spotifyApi = new SpotifyWebApi({
+      clientId: process.env.CLIENT_ID,
+      clientSecret: process.env.CLIENT_SECRET,
+      accessToken: token,
+    });
+
     const user = await User.findById(req.user.id);
 
     const userId = user._id;
@@ -114,10 +123,31 @@ exports.addSong = async (req, res, next) => {
 
     await album.save();
 
+    //? IMPORTANT
+
+    await spotifyApi
+      .searchTracks(
+        `track:${songData.songName} artist:${songData.mainArtistName}`,
+        { limit: 1 }
+      )
+      .then(
+        function (data) {
+          songData.popularity = data.body.tracks.items[0].popularity;
+          songData.release_date = data.body.tracks.items[0].album.release_date;
+          songData.duration_ms = data.body.tracks.items[0].duration_ms;
+          songData.albumImg = data.body.tracks.items[0].album.images[1].url;
+        },
+        function (err) {
+          console.log("Something went wrong!", err);
+        }
+      );
+
+    //? IMPORTANT
+
     songData.albumId = album._id;
     songData.mainArtistId = artist._id;
     songData.featuringArtistId = [];
-    for (let index = 1; index < req.body.featuringArtistNames.length; index++) {
+    for (let index = 0; index < req.body.featuringArtistNames.length; index++) {
       const featuringArtistName = req.body.featuringArtistNames[index];
       let featuringArtist;
       if (
@@ -145,6 +175,10 @@ exports.addSong = async (req, res, next) => {
       featuringArtistId: songData.featuringArtistId,
       albumName: songData.albumName,
       albumId: songData.albumId,
+      popularity: songData.popularity,
+      release_date: songData.release_date,
+      duration_ms: songData.duration_ms,
+      albumImg: songData.albumImg,
     });
 
     return res.status(201).json({

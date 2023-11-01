@@ -5,7 +5,7 @@ const cors = require("cors");
 const connectDB = require("./config/database");
 
 dotenv.config({ path: "./config/config.env" });
-connectDB();
+
 const app = express();
 app.use(cors({ credentials: true, origin: "http://localhost:3000" }));
 app.use(express.json());
@@ -33,6 +33,11 @@ app.use("/rating", ratingRoutes);
 
 const PORT = process.env.PORT;
 
-const server = app.listen(PORT, () => {
-  console.log(`Server running in ${PORT}`);
-});
+start = async () => {
+  connectDB();
+  await app.listen(PORT, async () => {
+    console.log(`Server running in ${PORT}`);
+  });
+};
+
+start();
