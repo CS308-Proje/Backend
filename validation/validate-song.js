@@ -2,7 +2,7 @@ const Album = require("../models/Album");
 const Artist = require("../models/Artist");
 const Song = require("../models/Song");
 
-const isAlbumExits = async songData => {
+const isAlbumExits = async (songData) => {
   const albumName = songData.albumName;
 
   const album = await Album.findOne({
@@ -15,8 +15,8 @@ const isAlbumExits = async songData => {
   return true;
 };
 
-const isSongExists = async songData => {
-  const songName = songData.name;
+const isSongExists = async (songData) => {
+  const songName = songData.songName;
 
   const song = await Song.findOne({
     userId: songData.userId,
@@ -28,7 +28,7 @@ const isSongExists = async songData => {
   return true;
 };
 
-const isArtistExists = async songData => {
+const isArtistExists = async (songData) => {
   const artistName = songData.mainArtistName;
 
   const artist = await Artist.findOne({
@@ -55,7 +55,7 @@ const isFeaturingArtistExist = async (name, id) => {
   return true;
 };
 
-const isSongInDB = async songData => {
+const isSongInDB = async (songData) => {
   const song = await Song.findOne({
     userId: songData.userId,
     songName: songData.songName,
