@@ -8,6 +8,8 @@ const { getSpotifyAccessToken } = require("../config/spotifyAPI");
 const SpotifyWebApi = require("spotify-web-api-node");
 const multer = require("multer");
 const fs = require("fs");
+const mongodb = require("mongodb");
+
 const {
   isAlbumExits,
   isSongExists,
@@ -15,6 +17,7 @@ const {
   isFeaturingArtistExist,
   isSongInDB,
 } = require("../validation/validate-song");
+const { default: axios } = require("axios");
 
 exports.getSongs = async (req, res, next) => {
   //* Buraya pagination eklenecek
@@ -129,7 +132,7 @@ exports.addSong = async (req, res, next) => {
 
     await spotifyApi
       .searchTracks(
-        `track:${songData.songName} artist:${songData.mainArtistName}`,
+        `track:${songData.songName} artist:${songData.mainArtistName} album:${songData.albumName}`,
         { limit: 1 }
       )
       .then(
@@ -305,14 +308,28 @@ const saveSongsToDatabase = async (fileBuffer, userId) => {
 
       await album.save();
 
+      /*
       //? IMPORTANT
       const encodedSearchTerm = encodeURIComponent(
-        `track:${songData.songName} artist:${songData.mainArtistName}`
+        `artist:${songData.mainArtistName} track:${songData.songName}`
       );
 
+      const response = await axios.get(
+        `https://api.spotify.com/v1/search?q=${encodedSearchTerm}&type=track%2Cartist&limit=1`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const track = response.data.tracks;
+      console.log(track);
+      */
+
       await spotifyApi
-        .search(
-          `track:${songData.songName} artist:${songData.mainArtistName}`,
+        .searchTracks(
+          `artist:${songData.mainArtistName} track:${songData.songName} album:${songData.albumName}`,
           { limit: 1 }
         )
         .then(
@@ -329,6 +346,7 @@ const saveSongsToDatabase = async (fileBuffer, userId) => {
           }
         );
 
+      //? IMPORTANT
       songData.albumId = album._id;
       songData.mainArtistId = artist._id;
       songData.featuringArtistId = [];
@@ -389,6 +407,36 @@ exports.addSongViaFile = async (req, res, next) => {
   } catch (err) {
     return res.status(400).json({
       error: err.message,
+      success: false,
+    });
+  }
+};
+
+exports.transferSongs = async (req, res, next) => {
+  try {
+    const userClient = new mongodb.MongoClient(req.body.databaseURI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+
+    await userClient.connect();
+
+    const userDb = userClient.db(req.body.databaseName);
+    const userCollection = userDb.collection(req.body.collectionName);
+
+    const musicData = await userCollection.find().toArray();
+
+    for (let index = 0; index < musicData.length; index++) {
+      console.log(musicData[index]);
+    }
+
+    return res.status(201).json({
+      message: "Musics are added.",
+      success: true,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error: err,
       success: false,
     });
   }

@@ -26,4 +26,6 @@ router.post(
   songController.addSongViaFile
 );
 
+router.post("/transfer-songs", isAuth.protect, songController.transferSongs);
+
 module.exports = router;
