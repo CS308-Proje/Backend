@@ -57,6 +57,11 @@ const SongSchema = new mongoose.Schema({
     type: Date,
     default: Date.now(),
   },
+  ratingValue: {
+    type: Number,
+    min: 0,
+    max: 5,
+  },
 });
 
 module.exports = mongoose.model("Song", SongSchema);

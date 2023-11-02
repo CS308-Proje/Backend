@@ -18,6 +18,12 @@ const RatingSchema = new mongoose.Schema({
     default: null,
     required: false,
   },
+  artistId: {
+    type: mongoose.Types.ObjectId,
+    ref: 'Artist',
+    default: null,
+    required: false,
+  },
   ratingValue: {
     type: Number,
     min: 0, 
