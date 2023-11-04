@@ -127,12 +127,12 @@ exports.forgotPassword = async (req, res, next) => {
     try {
       // Set up nodemailer transporter
       let transporter = nodemailer.createTransport({
-        // ... your SMTP configuration
+    
       });
       
       // Send the email
       let info = await transporter.sendMail({
-        from: '"Your Company Name" <support@yourcompany.com>', // sender address
+        from: '"Your Company Name" <support@yourcompany.com>', 
         to: user.email,
         subject: "Password reset token",
         text: message,
@@ -157,7 +157,7 @@ exports.forgotPassword = async (req, res, next) => {
 
 //* Reset Password
 exports.resetPassword = async (req, res, next) => {
-  // Get hashed token
+
   const resetPasswordToken = crypto.createHash('sha256').update(req.params.resettoken).digest('hex');
 
   try {
@@ -183,16 +183,3 @@ exports.resetPassword = async (req, res, next) => {
   }
 };
 
-// Add the getResetPasswordToken method to your User model
-UserSchema.methods.getResetPasswordToken = function() {
-  // Generate token
-  const resetToken = crypto.randomBytes(20).toString('hex');
-
-  // Hash token and set to resetPasswordToken field
-  this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
-
-  // Set expire
-  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
-
-  return resetToken;
-};

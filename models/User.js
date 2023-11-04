@@ -49,6 +49,26 @@ const UserSchema = new mongoose.Schema({
 
 });
 
+
+
+UserSchema.methods.getResetPasswordToken = function() {
+  // Generate token
+  const resetToken = crypto.randomBytes(20).toString('hex');
+
+  // Hash token and set to resetPasswordToken field
+  this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+
+  // Set expire
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; 
+
+  return resetToken;
+};
+
+// Compile the schema into a model
+const User = mongoose.model('User', UserSchema);
+
+module.exports = User;
+
 //* ENCRYPT password
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
