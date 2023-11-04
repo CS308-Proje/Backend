@@ -11,4 +11,10 @@ router.post("/logout", isAuth.protect, authenticationController.logout);
 
 router.get("/me", isAuth.protect, authenticationController.getMe);
 
+// forget password route 
+router.post("/forgotpassword", authenticationController.forgotPassword);
+
+// reset password route 
+router.put("/resetpassword/:resetToken", authenticationController.resetPassword);
+
 module.exports = router;

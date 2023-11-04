@@ -19,6 +19,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.6.3",
     "multer": "^1.4.5-lts.1",
+    "nodemailer": "^6.9.7",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
     "spotify-web-api-node": "^5.0.2"
