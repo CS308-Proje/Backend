@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const ErrorResponse = require("../error/error-response");
-
+const crypto = require("crypto"); //*to generate secure tokens
+const nodemailer = require("nodemailer"); //* for sending emails
 const { matchPassword, sendTokenResponse } = require("../utils/userUtils");
 
 //* Register User
@@ -99,5 +100,94 @@ exports.getMe = async (req, res, next) => {
         400
       )
     );
+  }
+};
+
+//* Forgot Password
+exports.forgotPassword = async (req, res, next) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return next(new ErrorResponse("There is no user with that email", 404));
+    }
+
+    // Get reset token
+    const resetToken = user.getResetPasswordToken();
+
+    await user.save({ validateBeforeSave: false });
+
+    // Create reset URL
+    const resetUrl = `${req.protocol}://${req.get(
+      "host"
+    )}/auth/resetpassword/${resetToken}`;
+
+    const message = `You are receiving this email because you (or someone else) has requested the reset of a password. Please make a PUT request to: \n\n ${resetUrl}`;
+
+    try {
+      // Set up nodemailer transporter
+      let transporter = nodemailer.createTransport({
+        service: "gmail",
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: {
+          user: "gorillaaeveryday@gmail.com",
+          pass: "iwiv kqzk pysi eiqn",
+        },
+      });
+
+      // Send the email
+      let info = await transporter.sendMail({
+        from: "gorillaaeveryday@gmail.com",
+        to: user.email,
+        subject: "Password reset token",
+        text: message,
+      });
+
+      res.status(200).json({ success: true, data: "Email sent" });
+    } catch (err) {
+      console.log(err);
+
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+
+      await user.save({ validateBeforeSave: false });
+
+      return next(new ErrorResponse("Email could not be sent", 500));
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+//* Reset Password
+exports.resetPassword = async (req, res, next) => {
+  const resetPasswordToken = crypto
+    .createHash("sha256")
+    .update(req.params.resetToken)
+    .digest("hex");
+
+  try {
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return next(new ErrorResponse("Invalid token", 400));
+    }
+
+    // Set new password
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    sendTokenResponse(user, 200, res);
+  } catch (err) {
+    next(err);
   }
 };
