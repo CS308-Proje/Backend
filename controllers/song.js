@@ -8,6 +8,8 @@ const { getSpotifyAccessToken } = require("../config/spotifyAPI");
 const SpotifyWebApi = require("spotify-web-api-node");
 const multer = require("multer");
 const fs = require("fs");
+const mongodb = require("mongodb");
+
 const {
   isAlbumExits,
   isSongExists,
@@ -15,6 +17,7 @@ const {
   isFeaturingArtistExist,
   isSongInDB,
 } = require("../validation/validate-song");
+const { default: axios } = require("axios");
 
 exports.getSongs = async (req, res, next) => {
   //* Buraya pagination eklenecek
@@ -129,7 +132,7 @@ exports.addSong = async (req, res, next) => {
 
     await spotifyApi
       .searchTracks(
-        `track:${songData.songName} artist:${songData.mainArtistName}`,
+        `track:${songData.songName} artist:${songData.mainArtistName} album:${songData.albumName}`,
         { limit: 1 }
       )
       .then(
@@ -305,14 +308,28 @@ const saveSongsToDatabase = async (fileBuffer, userId) => {
 
       await album.save();
 
+      /*
       //? IMPORTANT
       const encodedSearchTerm = encodeURIComponent(
-        `track:${songData.songName} artist:${songData.mainArtistName}`
+        `artist:${songData.mainArtistName} track:${songData.songName}`
       );
 
+      const response = await axios.get(
+        `https://api.spotify.com/v1/search?q=${encodedSearchTerm}&type=track%2Cartist&limit=1`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const track = response.data.tracks;
+      console.log(track);
+      */
+
       await spotifyApi
-        .search(
-          `track:${songData.songName} artist:${songData.mainArtistName}`,
+        .searchTracks(
+          `artist:${songData.mainArtistName} track:${songData.songName} album:${songData.albumName}`,
           { limit: 1 }
         )
         .then(
@@ -329,6 +346,7 @@ const saveSongsToDatabase = async (fileBuffer, userId) => {
           }
         );
 
+      //? IMPORTANT
       songData.albumId = album._id;
       songData.mainArtistId = artist._id;
       songData.featuringArtistId = [];
@@ -389,6 +407,165 @@ exports.addSongViaFile = async (req, res, next) => {
   } catch (err) {
     return res.status(400).json({
       error: err.message,
+      success: false,
+    });
+  }
+};
+
+exports.transferSongs = async (req, res, next) => {
+  try {
+    const token = await getSpotifyAccessToken();
+    const spotifyApi = new SpotifyWebApi({
+      clientId: process.env.CLIENT_ID,
+      clientSecret: process.env.CLIENT_SECRET,
+      accessToken: token,
+    });
+    const user = await User.findById(req.user.id);
+    const userId = user.id;
+    const userClient = new mongodb.MongoClient(req.body.databaseURI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+
+    await userClient.connect();
+
+    const userDb = userClient.db(req.body.databaseName);
+    const userCollection = userDb.collection(req.body.collectionName);
+
+    const songsArray = await userCollection.find().toArray();
+
+    for (let index = 0; index < songsArray.length; index++) {
+      const songData = {
+        userId: userId,
+        ...songsArray[index],
+      };
+
+      if ((await isSongInDB(songData)) === true) {
+        return res.status(400).json({
+          message: "Song is already in the database!",
+          success: false,
+        });
+      }
+      const albumName = songsArray[index].albumName;
+      let album = null;
+      let artist = null;
+
+      if ((await isAlbumExits(songData)) === false) {
+        album = await Album.create({
+          userId: userId,
+          name: albumName,
+        });
+      } else {
+        album = await Album.findOne({
+          userId: userId,
+          name: albumName,
+        });
+      }
+
+      if ((await isArtistExists(songData)) === false) {
+        artist = await Artist.create({
+          userId: userId,
+          artistName: songData.mainArtistName,
+        });
+      } else {
+        artist = await Artist.findOne({
+          userId: userId,
+          artistName: songData.mainArtistName,
+        });
+      }
+
+      album.artistId = artist._id;
+
+      await album.save();
+
+      /*
+        //? IMPORTANT
+        const encodedSearchTerm = encodeURIComponent(
+          `artist:${songData.mainArtistName} track:${songData.songName}`
+        );
+  
+        const response = await axios.get(
+          `https://api.spotify.com/v1/search?q=${encodedSearchTerm}&type=track%2Cartist&limit=1`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+  
+        const track = response.data.tracks;
+        console.log(track);
+        */
+
+      await spotifyApi
+        .searchTracks(
+          `artist:${songData.mainArtistName} track:${songData.songName} album:${songData.albumName}`,
+          { limit: 1 }
+        )
+        .then(
+          function (data) {
+            console.log(data.body.tracks);
+            songData.popularity = data.body.tracks.items[0].popularity;
+            songData.release_date =
+              data.body.tracks.items[0].album.release_date;
+            songData.duration_ms = data.body.tracks.items[0].duration_ms;
+            songData.albumImg = data.body.tracks.items[0].album.images[1].url;
+          },
+          function (err) {
+            console.log("Something went wrong!", err);
+          }
+        );
+
+      //? IMPORTANT
+      songData.albumId = album._id;
+      songData.mainArtistId = artist._id;
+      songData.featuringArtistId = [];
+      for (
+        let index = 0;
+        index < songData.featuringArtistNames.length;
+        index++
+      ) {
+        const featuringArtistName = songData.featuringArtistNames[index];
+        let featuringArtist;
+        if (
+          (await isFeaturingArtistExist(featuringArtistName, userId)) === false
+        ) {
+          featuringArtist = await Artist.create({
+            userId: userId,
+            artistName: featuringArtistName,
+          });
+        } else {
+          featuringArtist = await Artist.findOne({
+            userId: userId,
+            artistName: featuringArtistName,
+          });
+        }
+
+        songData.featuringArtistId.push(featuringArtist._id);
+      }
+      const song = await Song.create({
+        userId: songData.userId,
+        songName: songData.songName,
+        mainArtistName: songData.mainArtistName,
+        mainArtistId: songData.mainArtistId,
+        featuringArtistNames: songData.featuringArtistNames,
+        featuringArtistId: songData.featuringArtistId,
+        albumName: songData.albumName,
+        albumId: songData.albumId,
+        popularity: songData.popularity,
+        release_date: songData.release_date,
+        duration_ms: songData.duration_ms,
+        albumImg: songData.albumImg,
+      });
+    }
+
+    return res.status(201).json({
+      message: "Musics are added.",
+      success: true,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error: err,
       success: false,
     });
   }
