@@ -118,7 +118,7 @@ exports.addSong = async (req, res, next) => {
         artistName: req.body.mainArtistName,
       });
     } else {
-      artist = await Artist.findOne({
+      artist = await Artist.find({
         userId: userId,
         artistName: req.body.mainArtistName,
       });
@@ -504,7 +504,7 @@ exports.transferSongs = async (req, res, next) => {
         )
         .then(
           function (data) {
-            console.log(data.body.tracks);
+            //console.log(data.body.tracks);
             songData.popularity = data.body.tracks.items[0].popularity;
             songData.release_date =
               data.body.tracks.items[0].album.release_date;
