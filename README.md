@@ -37,3 +37,9 @@
 - Analysis phase will be done after recommendations part.
 
 - Result sharing will be implemented after Analysis.
+
+## Documentation
+
+- Documentation can be reached by [Postman Documentation](https://www.postman.com/p308backend/workspace/cs308-srs/collection/26964445-4e82c611-a6ff-4651-8174-6d45d6bfa655?action=share&creator=26964445).
+
+- For any question please email eustun@sabanciuniv.edu

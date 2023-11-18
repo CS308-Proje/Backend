@@ -26,6 +26,25 @@ exports.getSongs = async (req, res, next) => {
 
     const userId = user.id;
 
+    const name = req.query.name;
+    if (name) {
+      const songs = await Song.find({
+        userId: userId,
+        songName: { $regex: name, $options: "i" },
+      });
+      if (!songs || songs.length === 0) {
+        return res.status(400).json({
+          message: "No songs is found.",
+          success: false,
+        });
+      }
+      return res.status(200).json({
+        songs,
+        count: songs.length,
+        success: true,
+      });
+    }
+
     const songs = await Song.find({ userId: userId });
 
     if (!songs || songs.length === 0) {
