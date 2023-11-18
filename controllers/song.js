@@ -137,7 +137,7 @@ exports.addSong = async (req, res, next) => {
         artistName: req.body.mainArtistName,
       });
     } else {
-      artist = await Artist.find({
+      artist = await Artist.findOne({
         userId: userId,
         artistName: req.body.mainArtistName,
       });
@@ -156,6 +156,7 @@ exports.addSong = async (req, res, next) => {
       )
       .then(
         function (data) {
+          console.log(data.body.tracks);
           songData.popularity = data.body.tracks.items[0].popularity;
           songData.release_date = data.body.tracks.items[0].album.release_date;
           songData.duration_ms = data.body.tracks.items[0].duration_ms;
@@ -460,10 +461,7 @@ exports.transferSongs = async (req, res, next) => {
       };
 
       if ((await isSongInDB(songData)) === true) {
-        return res.status(400).json({
-          message: "Song is already in the database!",
-          success: false,
-        });
+        continue;
       }
       const albumName = songsArray[index].albumName;
       let album = null;
