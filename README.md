@@ -1,25 +1,35 @@
 # Backend Part of the SRS - Song Recommendation System
 
-## What we have done so far?
+## Done
 
 - Authentication part is done.
 
-  - Reset Password might be added.
+- Models are created.
 
-- Song dataset is found.
+- Spotify API is adjusted
+
+- Cascading deleting is handled.
 
 - Friend management is adjusted.
 
 - Manual input entry is handled.
 
-- Song, Album and Artist models is created. When a user enters a song, if the album and artist was not included in the database, they will be created. Otherwise, we push those values in the songId part under Album model, and albumId part under Artist model.
+- File (batch) input is handled.
 
-## What are we going to the next?
+- Transfering database collection is handled.
 
-- We will add validation functions to check if the song, album or artist is already in the database.
+- Ratings are adjusted.
 
-- There is a minor bug in the adding friend route.
+- Recommendations based on song, album and artist are handled.
 
-- Batch input will be handled. In this function, users will specify a folder path, then the contents of will be added to the database after it gets validation.
+## In Progress
 
-- Song data that we found will be adjusted to conform our models in the backend.
+- We will add recommendations based on temporal value. For example, if a user rated an artist high previously, we will recommend other songs from that artist using Spotify API.
+
+- Users can export their data by filtering operations.
+
+## Will Do
+
+- We will add recommendations based on friendship activity. If user's friend rated a song, album, and artist, we will recommend these to the user.
+
+- We are planning to add Spotify recommendations via Spotify API.
