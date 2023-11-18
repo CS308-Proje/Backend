@@ -33,3 +33,7 @@
 - We will add recommendations based on friendship activity. If user's friend rated a song, album, and artist, we will recommend these to the user.
 
 - We are planning to add Spotify recommendations via Spotify API.
+
+- Analysis phase will be done after recommendations part.
+
+- Result sharing will be implemented after Analysis.
