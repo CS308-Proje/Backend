@@ -46,7 +46,7 @@
 
 ## Guide
 
-To start the code:
+To start the code, write these following lines:
 
 1. **npm i**
 1. **npm start**
