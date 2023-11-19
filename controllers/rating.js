@@ -5,14 +5,15 @@ const Song = require("../models/Song");
 const Rating = require("../models/Rating");
 const Artist = require("../models/Artist");
 
-
 // Rate a song
 exports.rateSong = async (req, res, next) => {
   try {
     const { songId, userId, ratingValue } = req.body;
 
     if (ratingValue < 0 || ratingValue > 5) {
-      return res.status(400).json({ message: 'Rating value must be between 0 and 5' });
+      return res
+        .status(400)
+        .json({ message: "Rating value must be between 0 and 5" });
     }
     let rating = await Rating.findOne({ songId, userId });
 
@@ -26,19 +27,17 @@ exports.rateSong = async (req, res, next) => {
     const song = await Song.findById(songId);
 
     if (!song) {
-      return res.status(404).json({ message: 'Song not found' });
+      return res.status(404).json({ message: "Song not found" });
     }
 
     song.ratingValue = ratingValue;
     await song.save();
 
-    res.status(200).json({ message: 'Song Rated!' });
+    res.status(200).json({ message: "Song Rated!" });
   } catch (err) {
     next(err);
   }
 };
-
-
 
 // Rate an album
 exports.rateAlbum = async (req, res, next) => {
@@ -46,12 +45,14 @@ exports.rateAlbum = async (req, res, next) => {
     const { albumId, userId, ratingValue } = req.body;
 
     if (ratingValue < 0 || ratingValue > 5) {
-      return res.status(400).json({ message: 'Rating value must be between 0 and 5' });
+      return res
+        .status(400)
+        .json({ message: "Rating value must be between 0 and 5" });
     }
     const album = await Album.findById(albumId);
 
     if (!album) {
-      return res.status(404).json({ message: 'Album not found' });
+      return res.status(404).json({ message: "Album not found" });
     }
 
     let rating = await Rating.findOne({ albumId, userId });
@@ -66,7 +67,7 @@ exports.rateAlbum = async (req, res, next) => {
     album.ratingValue = ratingValue;
     await album.save();
 
-    res.status(200).json({ message: 'Album Rated!' });
+    res.status(200).json({ message: "Album Rated!" });
   } catch (err) {
     next(err);
   }
@@ -78,7 +79,9 @@ exports.rateArtist = async (req, res, next) => {
     const { artistId, userId, ratingValue } = req.body;
 
     if (ratingValue < 0 || ratingValue > 5) {
-      return res.status(400).json({ message: 'Rating value must be between 0 and 5' });
+      return res
+        .status(400)
+        .json({ message: "Rating value must be between 0 and 5" });
     }
 
     let rating = await Rating.findOne({ artistId, userId });
@@ -95,9 +98,8 @@ exports.rateArtist = async (req, res, next) => {
     artist.ratingValue = ratingValue;
     await artist.save();
 
-    res.status(200).json({ message: 'Artist Rated!' });
+    res.status(200).json({ message: "Artist Rated!" });
   } catch (err) {
     next(err);
   }
 };
-

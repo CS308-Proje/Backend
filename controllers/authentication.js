@@ -105,9 +105,10 @@ exports.getMe = async (req, res, next) => {
 
 //* Forgot Password
 exports.forgotPassword = async (req, res, next) => {
-  const { email } = req.body;
+  
 
   try {
+    const { email } = req.body;
     const user = await User.findOne({ email });
 
     if (!user) {

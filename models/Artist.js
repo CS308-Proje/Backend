@@ -21,4 +21,6 @@ const ArtistSchema = new mongoose.Schema({
   },
 });
 
+ArtistSchema.index({ userId: 1, artistName: 1 }, { unique: true });
+
 module.exports = mongoose.model("Artist", ArtistSchema);
