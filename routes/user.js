@@ -40,4 +40,11 @@ router.put(
   userController.updateUser
 );
 
+router.delete(
+  "/users/delete-song/:id",
+  isAuth.protect,
+  isAuth.authorize("admin"),
+  userController.deleteSong
+);
+
 module.exports = router;
