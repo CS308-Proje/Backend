@@ -1,6 +1,7 @@
 const Rating = require("../models/Rating");
 const Song = require("../models/Song");
 const User = require("../models/User");
+const fs = require("fs");
 
 exports.dataExport = async (req, res) => {
   try {
@@ -36,7 +37,7 @@ exports.dataExport = async (req, res) => {
       });
     }
 
-    const cleanedData = data.map((song) => {
+    const cleanedData = data.map(song => {
       return {
         songName: song.songName,
         artistName: song.mainArtistName,
@@ -45,10 +46,27 @@ exports.dataExport = async (req, res) => {
       };
     });
 
-    return res.status(200).json({
-      data: cleanedData,
+    // Specify the file path where the user wants to save the file
+    const filePath = req.body.path;
+    console.log(JSON.stringify(cleanedData));
+
+    const fileName = "exportedData.json";
+    const fileFullPath = `${filePath}/${fileName}`;
+
+    // Save the JSON data to the specified file path
+    fs.writeFileSync(fileFullPath, JSON.stringify(cleanedData));
+
+    // Set headers for file download
+    res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
+
+    // Send the file as a response
+    res.status(200).json({
       success: true,
+      message: "File downloaded successfully.",
     });
+
+    // Send the file as a response
+    return res.sendFile(filePath);
   } catch (err) {
     return res.status(400).json({
       error: err,
