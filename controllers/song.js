@@ -170,7 +170,7 @@ exports.addSong = async (req, res, next) => {
       songData.albumImg =
         spotifyAPIdata.body.tracks.items[0].album.images[1].url;
     } else {
-      artistImg =
+      artist.artistImg =
         "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
       songData.popularity = undefined;
       songData.release_date = undefined;
@@ -395,7 +395,7 @@ const saveSongsToDatabase = async (fileBuffer, userId) => {
         songData.albumImg =
           spotifyAPIdata.body.tracks.items[0].album.images[1].url;
       } else {
-        artistImg =
+        artist.artistImg =
           "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
         songData.popularity = undefined;
         songData.release_date = undefined;
@@ -609,7 +609,7 @@ exports.transferSongs = async (req, res, next) => {
         songData.albumImg =
           spotifyAPIdata.body.tracks.items[0].album.images[1].url;
       } else {
-        artistImg =
+        artist.artistImg =
           "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
         songData.popularity = undefined;
         songData.release_date = undefined;
