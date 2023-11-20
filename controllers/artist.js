@@ -11,6 +11,23 @@ exports.getArtists = async (req, res, next) => {
 
     const userId = user.id;
 
+    const name = req.query.name;
+    if (name) {
+      const artists = await Artist.find({
+        userId: userId,
+        artistName: { $regex: name, $options: "i" },
+      });
+      if (!artists || artists.length === 0) {
+        return res.status(400).json({
+          message: "No artist is found.",
+          success: false,
+        });
+      }
+      return res.status(200).json({
+        artists,
+        success: true,
+      });
+    }
     const artists = await Artist.find({
       userId: userId,
     });
@@ -106,7 +123,7 @@ exports.deleteArtist = async (req, res, next) => {
       mainArtistId: req.params.id,
     });
 
-    const albums = await Album.deleteOne({
+    const albums = await Album.deleteMany({
       userId: userId,
       artistId: req.params.id,
     });

@@ -26,6 +26,25 @@ exports.getSongs = async (req, res, next) => {
 
     const userId = user.id;
 
+    const name = req.query.name;
+    if (name) {
+      const songs = await Song.find({
+        userId: userId,
+        songName: { $regex: name, $options: "i" },
+      });
+      if (!songs || songs.length === 0) {
+        return res.status(400).json({
+          message: "No songs is found.",
+          success: false,
+        });
+      }
+      return res.status(200).json({
+        songs,
+        count: songs.length,
+        success: true,
+      });
+    }
+
     const songs = await Song.find({ userId: userId });
 
     if (!songs || songs.length === 0) {
@@ -130,6 +149,26 @@ exports.addSong = async (req, res, next) => {
 
     //? IMPORTANT
 
+    const spotifyAPIdata = await spotifyApi.searchTracks(
+      `track:${songData.songName} artist:${songData.mainArtistName} album:${songData.albumName}`,
+      { limit: 1 }
+    );
+
+    if (spotifyAPIdata.body.tracks.items.length > 0) {
+      songData.popularity = spotifyAPIdata.body.tracks.items[0].popularity;
+      songData.release_date =
+        spotifyAPIdata.body.tracks.items[0].album.release_date;
+      songData.duration_ms = spotifyAPIdata.body.tracks.items[0].duration_ms;
+      songData.albumImg =
+        spotifyAPIdata.body.tracks.items[0].album.images[1].url;
+    } else {
+      songData.popularity = undefined;
+      songData.release_date = undefined;
+      songData.duration_ms = undefined;
+      songData.albumImg =
+        "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
+    }
+    /*
     await spotifyApi
       .searchTracks(
         `track:${songData.songName} artist:${songData.mainArtistName} album:${songData.albumName}`,
@@ -137,6 +176,7 @@ exports.addSong = async (req, res, next) => {
       )
       .then(
         function (data) {
+          console.log(data.body.tracks);
           songData.popularity = data.body.tracks.items[0].popularity;
           songData.release_date = data.body.tracks.items[0].album.release_date;
           songData.duration_ms = data.body.tracks.items[0].duration_ms;
@@ -146,7 +186,7 @@ exports.addSong = async (req, res, next) => {
           console.log("Something went wrong!", err);
         }
       );
-
+*/
     //? IMPORTANT
 
     songData.albumId = album._id;
@@ -271,10 +311,7 @@ const saveSongsToDatabase = async (fileBuffer, userId) => {
       };
 
       if ((await isSongInDB(songData)) === true) {
-        return res.status(400).json({
-          message: "Song is already in the database!",
-          success: false,
-        });
+        continue;
       }
       const albumName = songsArray[index].albumName;
       let album = null;
@@ -308,25 +345,26 @@ const saveSongsToDatabase = async (fileBuffer, userId) => {
 
       await album.save();
 
+      const spotifyAPIdata = await spotifyApi.searchTracks(
+        `artist:${songData.mainArtistName} track:${songData.songName} album:${songData.albumName}`,
+        { limit: 1 }
+      );
+
+      if (spotifyAPIdata.body.tracks.items.length > 0) {
+        songData.popularity = spotifyAPIdata.body.tracks.items[0].popularity;
+        songData.release_date =
+          spotifyAPIdata.body.tracks.items[0].album.release_date;
+        songData.duration_ms = spotifyAPIdata.body.tracks.items[0].duration_ms;
+        songData.albumImg =
+          spotifyAPIdata.body.tracks.items[0].album.images[1].url;
+      } else {
+        songData.popularity = undefined;
+        songData.release_date = undefined;
+        songData.duration_ms = undefined;
+        songData.albumImg =
+          "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
+      }
       /*
-      //? IMPORTANT
-      const encodedSearchTerm = encodeURIComponent(
-        `artist:${songData.mainArtistName} track:${songData.songName}`
-      );
-
-      const response = await axios.get(
-        `https://api.spotify.com/v1/search?q=${encodedSearchTerm}&type=track%2Cartist&limit=1`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      const track = response.data.tracks;
-      console.log(track);
-      */
-
       await spotifyApi
         .searchTracks(
           `artist:${songData.mainArtistName} track:${songData.songName} album:${songData.albumName}`,
@@ -345,7 +383,7 @@ const saveSongsToDatabase = async (fileBuffer, userId) => {
             console.log("Something went wrong!", err);
           }
         );
-
+        */
       //? IMPORTANT
       songData.albumId = album._id;
       songData.mainArtistId = artist._id;
@@ -441,10 +479,7 @@ exports.transferSongs = async (req, res, next) => {
       };
 
       if ((await isSongInDB(songData)) === true) {
-        return res.status(400).json({
-          message: "Song is already in the database!",
-          success: false,
-        });
+        continue;
       }
       const albumName = songsArray[index].albumName;
       let album = null;
@@ -497,6 +532,26 @@ exports.transferSongs = async (req, res, next) => {
         console.log(track);
         */
 
+      const spotifyAPIdata = await spotifyApi.searchTracks(
+        `artist:${songData.mainArtistName} track:${songData.songName} album:${songData.albumName}`,
+        { limit: 1 }
+      );
+
+      if (spotifyAPIdata.body.tracks.items.length > 0) {
+        songData.popularity = spotifyAPIdata.body.tracks.items[0].popularity;
+        songData.release_date =
+          spotifyAPIdata.body.tracks.items[0].album.release_date;
+        songData.duration_ms = spotifyAPIdata.body.tracks.items[0].duration_ms;
+        songData.albumImg =
+          spotifyAPIdata.body.tracks.items[0].album.images[1].url;
+      } else {
+        songData.popularity = undefined;
+        songData.release_date = undefined;
+        songData.duration_ms = undefined;
+        songData.albumImg =
+          "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
+      }
+      /*
       await spotifyApi
         .searchTracks(
           `artist:${songData.mainArtistName} track:${songData.songName} album:${songData.albumName}`,
@@ -504,7 +559,7 @@ exports.transferSongs = async (req, res, next) => {
         )
         .then(
           function (data) {
-            console.log(data.body.tracks);
+            //console.log(data.body.tracks);
             songData.popularity = data.body.tracks.items[0].popularity;
             songData.release_date =
               data.body.tracks.items[0].album.release_date;
@@ -515,7 +570,7 @@ exports.transferSongs = async (req, res, next) => {
             console.log("Something went wrong!", err);
           }
         );
-
+          */
       //? IMPORTANT
       songData.albumId = album._id;
       songData.mainArtistId = artist._id;

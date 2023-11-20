@@ -17,6 +17,7 @@ const SongSchema = new mongoose.Schema({
   },
   mainArtistId: {
     type: mongoose.Schema.ObjectId,
+    required: true,
   },
   featuringArtistNames: [
     {

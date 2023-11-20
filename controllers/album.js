@@ -11,6 +11,24 @@ exports.getAlbums = async (req, res, next) => {
 
     const userId = user.id;
 
+    const name = req.query.name;
+    if (name) {
+      const albums = await Album.find({
+        userId: userId,
+        name: { $regex: name, $options: "i" },
+      });
+      if (!albums || albums.length === 0) {
+        return res.status(400).json({
+          message: "No album is found.",
+          success: false,
+        });
+      }
+      return res.status(200).json({
+        albums,
+        success: true,
+      });
+    }
+
     const albums = await Album.find({ userId: userId });
 
     if (!albums || albums.length === 0) {

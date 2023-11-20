@@ -137,3 +137,26 @@ exports.deleteUser = async (req, res, next) => {
     });
   }
 };
+
+exports.deleteSong = async (req, res, next) => {
+  try {
+    const song = await Song.deleteOne({ _id: req.params.id });
+
+    if (!song) {
+      return res.status(400).json({
+        message: "Something went wrong.",
+        success: false,
+      });
+    }
+
+    return res.status(200).json({
+      message: "Song successfully deleted.",
+      success: true,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error: err,
+      success: false,
+    });
+  }
+};
