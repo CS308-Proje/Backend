@@ -216,6 +216,20 @@ exports.addSong = async (req, res, next) => {
           userId: userId,
           artistName: featuringArtistName,
         });
+
+        const featuringArtistImg = await spotifyApi.searchArtists(
+          `${featuringArtistName}`,
+          { limit: 1 }
+        );
+
+        if (featuringArtistImg) {
+          featuringArtist.artistImg =
+            featuringArtistImg.body.artists.items[0].images[1].url;
+        } else {
+          featuringArtist.artistImg =
+            "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
+        }
+        await featuringArtist.save();
       } else {
         featuringArtist = await Artist.findOne({
           userId: userId,
@@ -432,6 +446,20 @@ const saveSongsToDatabase = async (fileBuffer, userId) => {
             userId: userId,
             artistName: featuringArtistName,
           });
+
+          const featuringArtistImg = await spotifyApi.searchArtists(
+            `${featuringArtistName}`,
+            { limit: 1 }
+          );
+
+          if (featuringArtistImg) {
+            featuringArtist.artistImg =
+              featuringArtistImg.body.artists.items[0].images[1].url;
+          } else {
+            featuringArtist.artistImg =
+              "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
+          }
+          await featuringArtist.save();
         } else {
           featuringArtist = await Artist.findOne({
             userId: userId,
@@ -630,6 +658,19 @@ exports.transferSongs = async (req, res, next) => {
             userId: userId,
             artistName: featuringArtistName,
           });
+          const featuringArtistImg = await spotifyApi.searchArtists(
+            `${featuringArtistName}`,
+            { limit: 1 }
+          );
+
+          if (featuringArtistImg) {
+            featuringArtist.artistImg =
+              featuringArtistImg.body.artists.items[0].images[1].url;
+          } else {
+            featuringArtist.artistImg =
+              "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
+          }
+          await featuringArtist.save();
         } else {
           featuringArtist = await Artist.findOne({
             userId: userId,
