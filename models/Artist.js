@@ -9,7 +9,9 @@ const ArtistSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-
+  artistImg: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now(),

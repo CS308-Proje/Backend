@@ -13,6 +13,9 @@ const AlbumSchema = new mongoose.Schema({
     type: mongoose.Types.ObjectId,
     ref: "Artist",
   },
+  albumImg: {
+    type: String,
+  },
   createdAt: {
     type: Date,
     default: Date.now(),

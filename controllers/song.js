@@ -145,16 +145,24 @@ exports.addSong = async (req, res, next) => {
 
     album.artistId = artist._id;
 
-    await album.save();
-
     //? IMPORTANT
-
+    let artistImg = "";
     const spotifyAPIdata = await spotifyApi.searchTracks(
       `track:${songData.songName} artist:${songData.mainArtistName} album:${songData.albumName}`,
       { limit: 1 }
     );
 
     if (spotifyAPIdata.body.tracks.items.length > 0) {
+      //* For artist image
+      const artistId = spotifyAPIdata.body.tracks.items[0].artists[0].id;
+      // Use the artistId as needed
+      const artistData = await spotifyApi.getArtist(artistId);
+
+      artistImg = artistData.body.images[1].url;
+
+      artist.artistImg = artistImg;
+
+      //* Artist image part is over
       songData.popularity = spotifyAPIdata.body.tracks.items[0].popularity;
       songData.release_date =
         spotifyAPIdata.body.tracks.items[0].album.release_date;
@@ -162,12 +170,18 @@ exports.addSong = async (req, res, next) => {
       songData.albumImg =
         spotifyAPIdata.body.tracks.items[0].album.images[1].url;
     } else {
+      artistImg =
+        "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
       songData.popularity = undefined;
       songData.release_date = undefined;
       songData.duration_ms = undefined;
       songData.albumImg =
         "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
     }
+
+    album.albumImg = songData.albumImg;
+    await artist.save();
+    await album.save();
     /*
     await spotifyApi
       .searchTracks(
@@ -343,14 +357,23 @@ const saveSongsToDatabase = async (fileBuffer, userId) => {
 
       album.artistId = artist._id;
 
-      await album.save();
-
+      let artistImg = "";
       const spotifyAPIdata = await spotifyApi.searchTracks(
         `artist:${songData.mainArtistName} track:${songData.songName} album:${songData.albumName}`,
         { limit: 1 }
       );
 
       if (spotifyAPIdata.body.tracks.items.length > 0) {
+        //* For artist image
+
+        const artistId = spotifyAPIdata.body.tracks.items[0].artists[0].id;
+
+        const artistData = await spotifyApi.getArtist(artistId);
+
+        artistImg = artistData.body.images[1].url;
+
+        artist.artistImg = artistImg;
+
         songData.popularity = spotifyAPIdata.body.tracks.items[0].popularity;
         songData.release_date =
           spotifyAPIdata.body.tracks.items[0].album.release_date;
@@ -358,12 +381,19 @@ const saveSongsToDatabase = async (fileBuffer, userId) => {
         songData.albumImg =
           spotifyAPIdata.body.tracks.items[0].album.images[1].url;
       } else {
+        artistImg =
+          "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
         songData.popularity = undefined;
         songData.release_date = undefined;
         songData.duration_ms = undefined;
         songData.albumImg =
           "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
       }
+
+      album.albumImg = songData.albumImg;
+
+      await artist.save();
+      await album.save();
       /*
       await spotifyApi
         .searchTracks(
@@ -511,8 +541,6 @@ exports.transferSongs = async (req, res, next) => {
 
       album.artistId = artist._id;
 
-      await album.save();
-
       /*
         //? IMPORTANT
         const encodedSearchTerm = encodeURIComponent(
@@ -537,7 +565,15 @@ exports.transferSongs = async (req, res, next) => {
         { limit: 1 }
       );
 
+      let artistImg = "";
       if (spotifyAPIdata.body.tracks.items.length > 0) {
+        //* For artist image
+        const artistId = spotifyAPIdata.body.tracks.items[0].artists[0].id;
+        // Use the artistId as needed
+        const artistData = await spotifyApi.getArtist(artistId);
+        artistImg = artistData.body.images[1].url;
+        artist.artistImg = artistImg;
+
         songData.popularity = spotifyAPIdata.body.tracks.items[0].popularity;
         songData.release_date =
           spotifyAPIdata.body.tracks.items[0].album.release_date;
@@ -545,12 +581,17 @@ exports.transferSongs = async (req, res, next) => {
         songData.albumImg =
           spotifyAPIdata.body.tracks.items[0].album.images[1].url;
       } else {
+        artistImg =
+          "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
         songData.popularity = undefined;
         songData.release_date = undefined;
         songData.duration_ms = undefined;
         songData.albumImg =
           "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
       }
+      album.albumImg = songData.albumImg;
+      await album.save();
+      await artist.save();
       /*
       await spotifyApi
         .searchTracks(
