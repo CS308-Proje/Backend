@@ -6,9 +6,21 @@ const User = require("../models/User");
 // Protect routes
 exports.protect = async (req, res, next) => {
   try {
-    const token = req.cookies.token;
+    let token = "";
 
-    if (token) {
+    //token = req.cookies.token;
+
+    if (req.cookies.token) {
+      token = req.cookies.token;
+      const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+
+      req.user = await User.findById(decoded.id);
+    } else if (
+      req.headers.authorization &&
+      req.headers.authorization.startsWith("Bearer")
+    ) {
+      token = req.headers.authorization.split(" ")[1];
+
       const decoded = await jwt.verify(token, process.env.JWT_SECRET);
 
       req.user = await User.findById(decoded.id);
@@ -34,7 +46,7 @@ exports.authorize = (...roles) => {
     if (!roles.includes(req.user.role)) {
       return next(
         new ErrorResponse(
-          `User role ${req.user.role} is not authorized to access this route`,
+          "User role ${req.user.role} is not authorized to access this route",
           403
         )
       );
