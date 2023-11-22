@@ -16,6 +16,9 @@ const AlbumSchema = new mongoose.Schema({
   albumImg: {
     type: String,
   },
+  release_date: {
+    type: Date,
+  },
   createdAt: {
     type: Date,
     default: Date.now(),

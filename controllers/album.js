@@ -29,7 +29,7 @@ exports.getAlbums = async (req, res, next) => {
       });
     }
 
-    const albums = await Album.find({ userId: userId });
+    const albums = await Album.find({ userId: userId }).populate("artistId");
 
     if (!albums || albums.length === 0) {
       return res.status(400).json({

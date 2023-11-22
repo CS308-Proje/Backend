@@ -166,6 +166,7 @@ exports.addSong = async (req, res, next) => {
       songData.popularity = spotifyAPIdata.body.tracks.items[0].popularity;
       songData.release_date =
         spotifyAPIdata.body.tracks.items[0].album.release_date;
+
       songData.duration_ms = spotifyAPIdata.body.tracks.items[0].duration_ms;
       songData.albumImg =
         spotifyAPIdata.body.tracks.items[0].album.images[1].url;
@@ -178,7 +179,7 @@ exports.addSong = async (req, res, next) => {
       songData.albumImg =
         "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
     }
-
+    album.release_date = songData.release_date;
     album.albumImg = songData.albumImg;
     await artist.save();
     await album.save();
