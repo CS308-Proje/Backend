@@ -44,12 +44,15 @@ exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
 
         const spotifyAPIdata = await spotifyApi.searchTracks(
           `artist:${artistName}`,
-          { limit: 5 }
+          { limit: 2 }
         );
 
         if (spotifyAPIdata.body.tracks.items.length > 0) {
           for (let i = 0; i < spotifyAPIdata.body.tracks.items.length; i++) {
             //console.log(data.body.tracks.items[i].name);
+            if (song.songName === spotifyAPIdata.body.tracks.items[i].name) {
+              continue;
+            }
             songItems = {
               songName: spotifyAPIdata.body.tracks.items[i].name,
               mainArtistName:
@@ -113,6 +116,10 @@ exports.getRecommendationsBasedOnAlbumRating = async (req, res, next) => {
           userId: userId,
         });
 
+        const oneSong = await Song.findOne({
+          albumId: album.id,
+          userId: userId,
+        });
         if (
           recommendedSongs.some((item) => item.mainArtistName === album.name)
         ) {
@@ -125,12 +132,15 @@ exports.getRecommendationsBasedOnAlbumRating = async (req, res, next) => {
 
         const spotifyAPIdata = await spotifyApi.searchTracks(
           `album:${albumName} artist:${artist.artistName}`,
-          { limit: 5 }
+          { limit: 2 }
         );
 
         if (spotifyAPIdata.body.tracks.items.length > 0) {
           for (let i = 0; i < spotifyAPIdata.body.tracks.items.length; i++) {
             //console.log(data.body.tracks.items[i].name);
+            if (oneSong.songName === spotifyAPIdata.body.tracks.items[i].name) {
+              continue;
+            }
             songItems = {
               songName: spotifyAPIdata.body.tracks.items[i].name,
               mainArtistName:
@@ -197,16 +207,22 @@ exports.getRecommendationsBasedOnArtistRating = async (req, res, next) => {
           continue;
         }
 
+        const oneSong = await Song.findOne({
+          artistId: artist.id,
+          userId: userId,
+        });
+
         let songItems = {};
 
         const spotifyAPIdata = await spotifyApi.searchTracks(
           `artist:${artist.artistName}`,
-          { limit: 5 }
+          { limit: 2 }
         );
 
         if (spotifyAPIdata.body.tracks.items.length > 0) {
           for (let i = 0; i < spotifyAPIdata.body.tracks.items.length; i++) {
             //console.log(data.body.tracks.items[i].name);
+
             songItems = {
               songName: spotifyAPIdata.body.tracks.items[i].name,
               mainArtistName:
