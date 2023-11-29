@@ -23,4 +23,10 @@ router.get(
   recommendationsController.getRecommendationsBasedOnArtistRating
 );
 
+router.get(
+  "/based-on-spotify",
+  isAuth.protect,
+  recommendationsController.getRecommendationsFromSpotify
+);
+
 module.exports = router;

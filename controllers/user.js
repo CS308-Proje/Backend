@@ -142,6 +142,8 @@ exports.deleteSong = async (req, res, next) => {
   try {
     const song = await Song.deleteOne({ _id: req.params.id });
 
+
+    
     if (!song) {
       return res.status(400).json({
         message: "Something went wrong.",
