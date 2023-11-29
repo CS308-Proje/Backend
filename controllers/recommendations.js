@@ -405,7 +405,7 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const highRatedSongs = await Song.findOne({
+    const highRatedSongs = await Song.find({
       userId: userId,
       ratingValue: { $gte: 4 },
       createdAt: { $lte: thirtyDaysAgo },
@@ -413,42 +413,49 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
 
     let recommendedSongs = [];
 
-    if (!highRatedSongs || highRatedSongs.length === 0) {
-      return res.status(200).json({
-        message:
-          "No songs is rated high enough to get temporal recommendation from Spotify.",
-        success: false,
-        length: 0,
-      });
-    }
+    if (highRatedSongs.length > 0) {
+      for (let index = 0; index < highRatedSongs.length; index++) {
+        const song = highRatedSongs[index];
 
-    const spotifyAPIdata = await spotifyApi.searchTracks(
-      `artist:${highRatedSongs.mainArtistName}`,
-      { limit: 5 }
-    );
-
-    if (spotifyAPIdata.body.tracks.items.length > 0) {
-      for (let i = 0; i < spotifyAPIdata.body.tracks.items.length; i++) {
         if (
-          highRatedSongs.songName === spotifyAPIdata.body.tracks.items[i].name
+          recommendedSongs.some(
+            (item) => item.mainArtistName === song.mainArtistName
+          )
         ) {
           continue;
         }
-        songItems = {
-          songName: spotifyAPIdata.body.tracks.items[i].name,
-          mainArtistName: spotifyAPIdata.body.tracks.items[i].artists[0].name,
-          featuringArtistNames:
-            spotifyAPIdata.body.tracks.items[i].artists
-              .slice(1)
-              .map((artist) => artist.name) || [],
 
-          albumName: spotifyAPIdata.body.tracks.items[i].album.name,
-          albumImg: spotifyAPIdata.body.tracks.items[i].album.images[0].url,
-          popularity: spotifyAPIdata.body.tracks.items[i].popularity,
-          release_date: spotifyAPIdata.body.tracks.items[i].album.release_date,
-          duration_ms: spotifyAPIdata.body.tracks.items[i].duration_ms,
-        };
-        recommendedSongs.push(songItems);
+        let songItems = {};
+        const artistName = song.mainArtistName;
+        const spotifyAPIdata = await spotifyApi.searchTracks(
+          `artist:${artistName}`,
+          { limit: 2 }
+        );
+
+        if (spotifyAPIdata.body.tracks.items.length > 0) {
+          for (let i = 0; i < spotifyAPIdata.body.tracks.items.length; i++) {
+            if (song.songName === spotifyAPIdata.body.tracks.items[i].name) {
+              continue;
+            }
+            songItems = {
+              songName: spotifyAPIdata.body.tracks.items[i].name,
+              mainArtistName:
+                spotifyAPIdata.body.tracks.items[i].artists[0].name,
+              featuringArtistNames:
+                spotifyAPIdata.body.tracks.items[i].artists
+                  .slice(1)
+                  .map((artist) => artist.name) || [],
+
+              albumName: spotifyAPIdata.body.tracks.items[i].album.name,
+              albumImg: spotifyAPIdata.body.tracks.items[i].album.images[0].url,
+              popularity: spotifyAPIdata.body.tracks.items[i].popularity,
+              release_date:
+                spotifyAPIdata.body.tracks.items[i].album.release_date,
+              duration_ms: spotifyAPIdata.body.tracks.items[i].duration_ms,
+            };
+            recommendedSongs.push(songItems);
+          }
+        }
       }
     }
 
