@@ -9,7 +9,11 @@ const ErrorResponse = require("../error/error-response");
 //Send Invitation
 exports.createInvitation = async (req, res, next) => {
   try {
-    const { userId, targetUserId } = req.body;
+    const { targetUserId } = req.body;
+
+    const user = await User.findById(req.user.id);
+    const userId = user.id;
+    const targetUser = await User.findById(targetUserId);
 
     const existingInvitation = await Invitation.findOne({
       user_id: userId,
@@ -19,9 +23,6 @@ exports.createInvitation = async (req, res, next) => {
     if (existingInvitation) {
       return res.status(400).json({ message: 'Invitation already exists' });
     }
-
-    const user = await User.findById(userId);
-    const targetUser = await User.findById(targetUserId);
 
     if (!user || !targetUser) {
       console.log('User:', user);
@@ -69,8 +70,8 @@ exports.deleteInvitation = async (req, res, next) => {
 // Update Invitation status
 exports.updateStatus = async (req, res, next) => {
   try {
-    const { invitationId } = req.params;
     const { status } = req.body;
+    const { invitationId } = req.params;
 
     const invitation = await Invitation.findById(invitationId);
 
@@ -112,11 +113,13 @@ exports.updateStatus = async (req, res, next) => {
 //Gets all pending invitations of the user
 exports.getAllInvitations = async (req, res, next) => {
   try {
-    const { userId } = req.body;
+    
+    const user = await User.findById(req.user.id);
+    const userId = user.id;
 
     const invitations = await Invitation.find({ target_user_id: userId });
 
-    console.log(userId);
+    //console.log(userId);
 
     if (invitations.length === 0) {
       return res.status(200).json({ message: 'No pending invitations at the time' });
