@@ -29,4 +29,10 @@ router.get(
   recommendationsController.getRecommendationsFromSpotify
 );
 
+router.get(
+  "/based-on-temporal",
+  isAuth.protect,
+  recommendationsController.getRecommendationsBasedOnTemporalValues
+);
+
 module.exports = router;
