@@ -405,7 +405,7 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const highRatedSongs = await Song.find({
+    const highRatedSongs = await Song.findOne({
       userId: userId,
       ratingValue: { $gte: 4 },
       createdAt: { $lte: thirtyDaysAgo },
@@ -423,15 +423,14 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
     }
 
     const spotifyAPIdata = await spotifyApi.searchTracks(
-      `artist:${highRatedSongs[0].mainArtistName}`,
+      `artist:${highRatedSongs.mainArtistName}`,
       { limit: 5 }
     );
 
     if (spotifyAPIdata.body.tracks.items.length > 0) {
       for (let i = 0; i < spotifyAPIdata.body.tracks.items.length; i++) {
         if (
-          highRatedSongs[0].songName ===
-          spotifyAPIdata.body.tracks.items[i].name
+          highRatedSongs.songName === spotifyAPIdata.body.tracks.items[i].name
         ) {
           continue;
         }
