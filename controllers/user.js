@@ -162,3 +162,59 @@ exports.deleteSong = async (req, res, next) => {
     });
   }
 };
+
+exports.allowRecommendationsToFriends = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(400).json({
+        message: "No user is found",
+        success: false,
+      });
+    }
+
+    user.allowFriendRecommendations = true;
+
+    await user.save();
+
+    return res.status(200).json({
+      message:
+        "User successfully updated. Now, your friends CAN see your musics!",
+      success: true,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error: err.message,
+      success: false,
+    });
+  }
+};
+
+exports.disallowRecommendationsToFriends = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user) {
+      return res.status(400).json({
+        message: "No user is found",
+        success: false,
+      });
+    }
+
+    user.allowFriendRecommendations = false;
+
+    await user.save();
+
+    return res.status(200).json({
+      message:
+        "User successfully updated. Now, your friends CANNOT see your musics!",
+      success: true,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error: err.message,
+      success: false,
+    });
+  }
+};
