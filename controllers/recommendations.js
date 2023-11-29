@@ -449,12 +449,23 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
           duration_ms: spotifyAPIdata.body.tracks.items[i].duration_ms,
         };
         recommendedSongs.push(songItems);
-        break;
       }
     }
 
+    const randomIndex = Math.floor(Math.random() * recommendedSongs.length);
+    let recommendedSong = recommendedSongs[randomIndex];
+    while (
+      (await Song.findOne({
+        songName: recommendedSong.songName,
+        userId: userId,
+      })) !== null
+    ) {
+      const randomIndex = Math.floor(Math.random() * recommendedSongs.length);
+      recommendedSong = recommendedSongs[randomIndex];
+    }
+
     return res.status(200).json({
-      songs: recommendedSongs,
+      songs: recommendedSong,
       success: true,
       length: recommendedSongs.length,
     });
