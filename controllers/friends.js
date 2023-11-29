@@ -53,7 +53,7 @@ exports.removeFriend = async (req, res, next) => {
     }
 
     user.friends = user.friends.filter(
-      (friend) => friend.toString() !== friendId
+      friend => friend.toString() !== friendId
     );
 
     await user.save();
