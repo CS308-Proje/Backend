@@ -44,6 +44,10 @@ const UserSchema = new mongoose.Schema({
     },
   ],
 
+  allowFriendRecommendations: {
+    type: Boolean,
+    default: true,
+  },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
 });

@@ -26,6 +26,18 @@ router.post(
   userController.addUser
 );
 
+router.post(
+  "/users/allow-recommendations",
+  isAuth.protect,
+  userController.allowRecommendationsToFriends
+);
+
+router.post(
+  "/users/disallow-recommendations",
+  isAuth.protect,
+  userController.disallowRecommendationsToFriends
+);
+
 router.delete(
   "/users/:id",
   isAuth.protect,
