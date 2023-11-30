@@ -405,11 +405,30 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
     const highRatedSongs = await Song.find({
       userId: userId,
       ratingValue: { $gte: 4 },
       createdAt: { $lte: thirtyDaysAgo },
     });
+
+    for (index = 0; index < highRatedSongs.length; ) {
+      const songToCheckIfTheUserRatedThatArtistsSongLately = await Song.findOne(
+        {
+          mainArtistName: highRatedSongs[index].mainArtistName,
+          userId: userId,
+          createdAt: { $gte: thirtyDaysAgo },
+        }
+      );
+
+      if (songToCheckIfTheUserRatedThatArtistsSongLately !== null) {
+        highRatedSongs.splice(index, 1);
+      } else {
+        index++;
+      }
+    }
 
     let recommendedSongs = [];
 
@@ -429,7 +448,7 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
         const artistName = song.mainArtistName;
         const spotifyAPIdata = await spotifyApi.searchTracks(
           `artist:${artistName}`,
-          { limit: 2 }
+          { limit: 5 }
         );
 
         if (spotifyAPIdata.body.tracks.items.length > 0) {
