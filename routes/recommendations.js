@@ -29,4 +29,10 @@ router.get(
   recommendationsController.getRecommendationsFromSpotify
 );
 
+router.get(
+  "/based-on-friends",
+  isAuth.protect,
+  recommendationsController.getRecommendationsBasedOnFriendActivity
+);
+
 module.exports = router;

@@ -4,6 +4,7 @@ const Song = require("../models/Song");
 const User = require("../models/User");
 const Album = require("../models/Album");
 const Artist = require("../models/Artist");
+const Rating = require("../models/Rating");
 const { getSpotifyAccessToken } = require("../config/spotifyAPI");
 const SpotifyWebApi = require("spotify-web-api-node");
 
@@ -388,3 +389,74 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
 };
 
 exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {};
+
+
+
+exports.getRecommendationsBasedOnFriendActivity = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    
+    const maxPerCategory = 5;
+    const maxPerFriend = Math.ceil(maxPerCategory / user.friends.length);
+
+    let recommendedSongs = [];
+    let recommendedAlbums = [];
+    let recommendedArtists = [];
+
+    for (const friend of user.friends) {
+      const friendUser = await User.findById(friend);
+      const friendId = friendUser.id;
+
+      if (friendUser.allowFriendRecommendations === true) {
+        const friendRatings = await Rating.find({
+          userId: friendId,
+          createdAt: { $gte: threeDaysAgo },
+          ratingValue: { $gte: 4 }
+        }).limit(maxPerFriend * 3); 
+
+        let friendSongsIds = new Set();
+        let friendAlbumsIds = new Set();
+        let friendArtistsIds = new Set();
+
+        for (let rating of friendRatings) {
+          if (rating.songId && rating.songId !== null && friendSongsIds.size < maxPerFriend) {
+            friendSongsIds.add(rating.songId);
+          } else if (rating.albumId && rating.albumId !== null && friendAlbumsIds.size < maxPerFriend) {
+            friendAlbumsIds.add(rating.albumId);
+          } else if (rating.artistId && rating.artistId !== null && friendArtistsIds.size < maxPerFriend) {
+            friendArtistsIds.add(rating.artistId);
+          }
+        }
+
+        const songs = await Song.find({ _id: { $in: Array.from(friendSongsIds) } });
+        const albums = await Album.find({ _id: { $in: Array.from(friendAlbumsIds) } });
+        const artists = await Artist.find({ _id: { $in: Array.from(friendArtistsIds) } });
+
+        songs.forEach(song => recommendedSongs.push({ song, recommendedBy: friendId }));
+        albums.forEach(album => recommendedAlbums.push({ album, recommendedBy: friendId }));
+        artists.forEach(artist => recommendedArtists.push({ artist, recommendedBy: friendId }));
+      }
+    }
+
+    // Slice arrays to ensure maximum of 5 items per category
+    recommendedSongs = recommendedSongs.slice(0, maxPerCategory);
+    recommendedAlbums = recommendedAlbums.slice(0, maxPerCategory);
+    recommendedArtists = recommendedArtists.slice(0, maxPerCategory);
+
+    return res.status(200).json({
+      songs: recommendedSongs,
+      albums: recommendedAlbums,
+      artists: recommendedArtists,
+      success: true,
+    });
+
+  } catch (err) { 
+    return res.status(400).json({
+      message: err,
+      success: false,
+    });
+  }
+}
+
