@@ -23,6 +23,7 @@ const ratingRoutes = require("./routes/rating");
 const exportRoutes = require("./routes/export");
 const recommendationsRoutes = require("./routes/recommendations");
 const notificationsRoutes = require("./routes/notification");
+const analysisRoutes = require("./routes/analysis");
 app.use("/auth", authenticationRoutes);
 app.use(songRoutes);
 app.use(albumRoutes);
@@ -34,6 +35,7 @@ app.use("/rating", ratingRoutes);
 app.use(exportRoutes);
 app.use(recommendationsRoutes);
 app.use(notificationsRoutes);
+app.use(analysisRoutes);
 //*
 
 const PORT = process.env.PORT;
