@@ -4,8 +4,10 @@ const Song = require("../models/Song");
 const User = require("../models/User");
 const Album = require("../models/Album");
 const Artist = require("../models/Artist");
+const Rating = require("../models/Rating");
 const { getSpotifyAccessToken } = require("../config/spotifyAPI");
 const SpotifyWebApi = require("spotify-web-api-node");
+
 
 exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
   try {
@@ -389,6 +391,109 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
   }
 };
 
+
+exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {};
+
+
+
+exports.getRecommendationsBasedOnFriendActivity = async (req, res, next, limitResponse = false) => {
+  try {
+      const user = await User.findById(req.user.id);
+      const threeDaysAgo = new Date();
+      threeDaysAgo.setDate(threeDaysAgo.getDate() - 1);
+
+      const maxPerCategory = 5;
+      const maxPerFriend = Math.ceil(maxPerCategory / user.friends.length);
+
+      let recommendedSongs = [];
+      let recommendedAlbums = [];
+      let recommendedArtists = [];
+
+      
+      const user_songs = await Song.find({ userId: user.id });
+      const user_albums = await Album.find({ userId: user.id });
+      const user_artists = await Artist.find({ userId: user.id });
+
+      const userSongsIds = new Set(user_songs.map(song => song._id.toString()));
+      const userAlbumsIds = new Set(user_albums.map(album => album._id.toString()));
+      const userArtistsIds = new Set(user_artists.map(artist => artist._id.toString()));
+
+      for (const friend of user.friends) {
+          const friendUser = await User.findById(friend);
+          const friendId = friendUser.id;
+
+          if (friendUser.allowFriendRecommendations === true) {
+              const friendRatings = await Rating.find({
+                  userId: friendId,
+                  createdAt: { $gte: threeDaysAgo },
+                  ratingValue: { $gte: 4 }
+              }).limit(maxPerFriend * 3); 
+
+              let friendSongsIds = new Set();
+              let friendAlbumsIds = new Set();
+              let friendArtistsIds = new Set();
+
+              for (let rating of friendRatings) {
+                  if (rating.songId && !userSongsIds.has(rating.songId.toString()) && friendSongsIds.size < maxPerFriend) {
+                      friendSongsIds.add(rating.songId);
+                  }
+                  if (rating.albumId && !userAlbumsIds.has(rating.albumId.toString()) && friendAlbumsIds.size < maxPerFriend) {
+                      friendAlbumsIds.add(rating.albumId);
+                  }
+                  if (rating.artistId && !userArtistsIds.has(rating.artistId.toString()) && friendArtistsIds.size < maxPerFriend) {
+                      friendArtistsIds.add(rating.artistId);
+                  }
+              }
+
+              const songs = await Song.find({ _id: { $in: Array.from(friendSongsIds) } });
+              const albums = await Album.find({ _id: { $in: Array.from(friendAlbumsIds) } });
+              const artists = await Artist.find({ _id: { $in: Array.from(friendArtistsIds) } });
+
+              songs.forEach(song => recommendedSongs.push({ song, recommendedBy: friendId }));
+              albums.forEach(album => recommendedAlbums.push({ album, recommendedBy: friendId }));
+              artists.forEach(artist => recommendedArtists.push({ artist, recommendedBy: friendId }));
+          }
+      }
+
+      recommendedSongs = recommendedSongs.slice(0, maxPerCategory);
+      recommendedAlbums = recommendedAlbums.slice(0, maxPerCategory);
+      recommendedArtists = recommendedArtists.slice(0, maxPerCategory);
+
+      const length = recommendedSongs.length + recommendedAlbums.length + recommendedArtists.length;
+    
+      
+      if(limitResponse) {
+          if(length === 0) {
+              return res.status(200).json({
+                  message: 'No new friend activity.',
+              });
+          } else {
+              return res.status(200).json({
+                  message: `You have ${length} new recommendations based on friend activities.`,
+              });
+          }
+      } else {
+          if(length === 0) {
+              return res.status(200).json({
+                  message: 'No new friend activity.',
+              });
+          }
+          return res.status(200).json({
+              songs: recommendedSongs,
+              albums: recommendedAlbums,
+              artists: recommendedArtists,
+              success: true,
+              message: `You have ${length} new recommendations based on friend activities.`,
+          });
+      }
+  } catch (err) { 
+      return res.status(400).json({
+          message: err,
+          success: false,
+      });
+  }
+}
+
 exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -502,3 +607,4 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
     });
   }
 };
+

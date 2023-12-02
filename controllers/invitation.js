@@ -110,22 +110,47 @@ exports.updateStatus = async (req, res, next) => {
 
 
 
+
 //Gets all pending invitations of the user
-exports.getAllInvitations = async (req, res, next) => {
+exports.getAllInvitations = async (req, res, next, limitResponse = false) => {
   try {
     
     const user = await User.findById(req.user.id);
     const userId = user.id;
 
     const invitations = await Invitation.find({ target_user_id: userId });
+    const message = `You have ${invitations.length} pending invitations.`;
 
-    //console.log(userId);
 
-    if (invitations.length === 0) {
-      return res.status(200).json({ message: 'No pending invitations at the time' });
+    if (limitResponse) {
+      if (invitations.length === 0) {
+        return res.status(200).json({ message: 'No pending invitations at the time' });
+      }
+  
+      else
+      {
+      res.status(200).json({
+        message: message,
+      });
+      }
+
     }
 
-    res.status(200).json(invitations);
+    else
+    {
+      if (invitations.length === 0) {
+        return res.status(200).json({ message: 'No pending invitations at the time' });
+      }
+  
+      else
+      {
+      res.status(200).json({
+        message: message,
+        invitations: invitations
+      });
+      }
+    }
+    
   } catch (err) {
     next(err);
   }
