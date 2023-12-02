@@ -34,7 +34,7 @@ exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
 
         if (
           recommendedSongs.some(
-            item => item.mainArtistName === song.mainArtistName
+            (item) => item.mainArtistName === song.mainArtistName
           )
         ) {
           continue;
@@ -59,7 +59,7 @@ exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
               featuringArtistNames:
                 spotifyAPIdata.body.tracks.items[i].artists
                   .slice(1)
-                  .map(artist => artist.name) || [],
+                  .map((artist) => artist.name) || [],
 
               albumName: spotifyAPIdata.body.tracks.items[i].album.name,
               albumImg: spotifyAPIdata.body.tracks.items[i].album.images[0].url,
@@ -119,7 +119,9 @@ exports.getRecommendationsBasedOnAlbumRating = async (req, res, next) => {
           albumId: album.id,
           userId: userId,
         });
-        if (recommendedSongs.some(item => item.mainArtistName === album.name)) {
+        if (
+          recommendedSongs.some((item) => item.mainArtistName === album.name)
+        ) {
           continue;
         }
 
@@ -143,7 +145,7 @@ exports.getRecommendationsBasedOnAlbumRating = async (req, res, next) => {
               featuringArtistNames:
                 spotifyAPIdata.body.tracks.items[i].artists
                   .slice(1)
-                  .map(artist => artist.name) || [],
+                  .map((artist) => artist.name) || [],
 
               albumName: spotifyAPIdata.body.tracks.items[i].album.name,
               albumImg: spotifyAPIdata.body.tracks.items[i].album.images[0].url,
@@ -196,7 +198,7 @@ exports.getRecommendationsBasedOnArtistRating = async (req, res, next) => {
 
         if (
           recommendedSongs.some(
-            item => item.mainArtistName === artist.artistName
+            (item) => item.mainArtistName === artist.artistName
           )
         ) {
           continue;
@@ -223,7 +225,7 @@ exports.getRecommendationsBasedOnArtistRating = async (req, res, next) => {
               featuringArtistNames:
                 spotifyAPIdata.body.tracks.items[i].artists
                   .slice(1)
-                  .map(artist => artist.name) || [],
+                  .map((artist) => artist.name) || [],
 
               albumName: spotifyAPIdata.body.tracks.items[i].album.name,
               albumImg: spotifyAPIdata.body.tracks.items[i].album.images[0].url,
@@ -285,7 +287,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
     for (let index = 0; index < highRatedSongs.length; index++) {
       const song = highRatedSongs[index];
 
-      if (recommendedSongs.some(item => item.songName === song.songName)) {
+      if (recommendedSongs.some((item) => item.songName === song.songName)) {
         continue;
       }
 
@@ -320,7 +322,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
               featuringArtistNames:
                 spotifyRecommandedSongs.body.tracks[index].artists
                   .slice(1)
-                  .map(artist => artist.name) || [],
+                  .map((artist) => artist.name) || [],
 
               albumName: spotifyRecommandedSongs.body.tracks[index].album.name,
               albumImg:
@@ -360,7 +362,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
             featuringArtistNames:
               spotifyRecommandedSongs.body.tracks[index].artists
                 .slice(1)
-                .map(artist => artist.name) || [],
+                .map((artist) => artist.name) || [],
 
             albumName: spotifyRecommandedSongs.body.tracks[index].album.name,
             albumImg:
@@ -388,6 +390,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
     });
   }
 };
+
 
 exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {};
 
@@ -490,4 +493,118 @@ exports.getRecommendationsBasedOnFriendActivity = async (req, res, next, limitRe
       });
   }
 }
+
+exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const userId = user.id;
+
+    const token = await getSpotifyAccessToken();
+
+    const spotifyApi = new SpotifyWebApi({
+      clientId: process.env.CLIENT_ID,
+      clientSecret: process.env.CLIENT_SECRET,
+      accessToken: token,
+    });
+
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+
+    const highRatedSongs = await Song.find({
+      userId: userId,
+      ratingValue: { $gte: 4 },
+      createdAt: { $lte: thirtyDaysAgo },
+    });
+
+    for (index = 0; index < highRatedSongs.length; ) {
+      const songToCheckIfTheUserRatedThatArtistsSongLately = await Song.findOne(
+        {
+          mainArtistName: highRatedSongs[index].mainArtistName,
+          userId: userId,
+          createdAt: { $gte: thirtyDaysAgo },
+        }
+      );
+
+      if (songToCheckIfTheUserRatedThatArtistsSongLately !== null) {
+        highRatedSongs.splice(index, 1);
+      } else {
+        index++;
+      }
+    }
+
+    let recommendedSongs = [];
+
+    if (highRatedSongs.length > 0) {
+      for (let index = 0; index < highRatedSongs.length; index++) {
+        const song = highRatedSongs[index];
+
+        if (
+          recommendedSongs.some(
+            (item) => item.mainArtistName === song.mainArtistName
+          )
+        ) {
+          continue;
+        }
+
+        let songItems = {};
+        const artistName = song.mainArtistName;
+        const spotifyAPIdata = await spotifyApi.searchTracks(
+          `artist:${artistName}`,
+          { limit: 5 }
+        );
+
+        if (spotifyAPIdata.body.tracks.items.length > 0) {
+          for (let i = 0; i < spotifyAPIdata.body.tracks.items.length; i++) {
+            if (song.songName === spotifyAPIdata.body.tracks.items[i].name) {
+              continue;
+            }
+            songItems = {
+              songName: spotifyAPIdata.body.tracks.items[i].name,
+              mainArtistName:
+                spotifyAPIdata.body.tracks.items[i].artists[0].name,
+              featuringArtistNames:
+                spotifyAPIdata.body.tracks.items[i].artists
+                  .slice(1)
+                  .map((artist) => artist.name) || [],
+
+              albumName: spotifyAPIdata.body.tracks.items[i].album.name,
+              albumImg: spotifyAPIdata.body.tracks.items[i].album.images[0].url,
+              popularity: spotifyAPIdata.body.tracks.items[i].popularity,
+              release_date:
+                spotifyAPIdata.body.tracks.items[i].album.release_date,
+              duration_ms: spotifyAPIdata.body.tracks.items[i].duration_ms,
+            };
+            recommendedSongs.push(songItems);
+          }
+        }
+      }
+    }
+
+    const randomIndex = Math.floor(Math.random() * recommendedSongs.length);
+    let recommendedSong = recommendedSongs[randomIndex];
+    while (
+      (await Song.findOne({
+        songName: recommendedSong.songName,
+        userId: userId,
+      })) !== null
+    ) {
+      const randomIndex = Math.floor(Math.random() * recommendedSongs.length);
+      recommendedSong = recommendedSongs[randomIndex];
+    }
+
+    return res.status(200).json({
+      songs: recommendedSong,
+      success: true,
+      length: recommendedSongs.length,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message,
+      success: false,
+    });
+  }
+};
 

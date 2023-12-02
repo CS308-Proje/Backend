@@ -9,9 +9,9 @@ const User = require("../models/User");
 // Rate a song
 exports.rateSong = async (req, res, next) => {
   try {
-    const {ratingValue} = req.body;
+    const { ratingValue } = req.body;
     const songId = req.params.songId;
-    
+
     const user = await User.findById(req.user.id);
     const userId = user.id;
 
@@ -26,9 +26,11 @@ exports.rateSong = async (req, res, next) => {
         .status(400)
         .json({ message: "Rating value must be between 0 and 5" });
     }
-    
-    rating = new Rating({ songId, userId, ratingValue });
+
+    const rating = new Rating({ songId, userId, ratingValue });
     await rating.save();
+    song.ratingValue = ratingValue;
+    await song.save();
 
     res.status(200).json({ message: "Song Rated!" });
   } catch (err) {

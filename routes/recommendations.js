@@ -30,9 +30,15 @@ router.get(
 );
 
 router.get(
+
   "/based-on-friends",
   isAuth.protect,
   recommendationsController.getRecommendationsBasedOnFriendActivity
+
+  "/based-on-temporal",
+  isAuth.protect,
+  recommendationsController.getRecommendationsBasedOnTemporalValues
+
 );
 
 module.exports = router;
