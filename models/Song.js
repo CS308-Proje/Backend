@@ -63,10 +63,6 @@ const SongSchema = new mongoose.Schema({
     min: 0,
     max: 5,
   },
-  usedInTemporalRecommendation: {
-    type: Boolean,
-    default: false,
-  },
 });
 
 module.exports = mongoose.model("Song", SongSchema);
