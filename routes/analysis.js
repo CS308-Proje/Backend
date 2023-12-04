@@ -7,4 +7,10 @@ const isAuth = require("../middlewares/isAuth");
 
 router.get("/chart", isAuth.protect, analysisController.createAnalysis);
 
+router.get(
+  "/song-analysis",
+  isAuth.protect,
+  analysisController.createAnalysisBasedOnSongs
+);
+
 module.exports = router;
