@@ -12,7 +12,9 @@ exports.getInvitationNotification = async (req, res, next) => {
     try {
       const user = await User.findById(req.user.id);
       const userId = user.id;
-      const invitations = await getAllInvitations(req,res,next,true);    
+      const invitations_message = await getAllInvitations(req,res,next,true);    
+
+      return invitations_message;
     
     } catch (err) {
       next(err);
@@ -28,9 +30,35 @@ exports.getFriendActivityNotification = async (req, res, next) => {
           const user = await User.findById(req.user.id);
           const userId = user.id;
     
-          const recommendations = await getRecommendationsBasedOnFriendActivity(req,res,next,true);
+          const recommendations_message = await getRecommendationsBasedOnFriendActivity(req,res,next,true);
+
+          return recommendations_message;
            
         }catch (err) {
           next(err);
         }
+    };
+
+
+
+    exports.getAllNotifications = async (req, res, next) => {
+      try {
+        const user = await User.findById(req.user.id);
+        const userId = user.id;
+    
+       
+        const invitationNotifications = await exports.getInvitationNotification(req, res, next);
+        const friendActivityNotifications = await exports.getFriendActivityNotification(req, res, next);
+    
+        const allNotifications = {
+          invitations: invitationNotifications,
+          friendActivities: friendActivityNotifications
+        };
+    
+        
+        res.status(200).json(allNotifications);
+        
+      } catch (err) {
+        next(err);
+      }
     };

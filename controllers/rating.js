@@ -58,8 +58,10 @@ exports.rateAlbum = async (req, res, next) => {
       return res.status(404).json({ message: "Album not found" });
     }
 
-    rating = new Rating({ albumId, userId, ratingValue });
+    const rating = new Rating({ albumId, userId, ratingValue });
     await rating.save();
+    album.ratingValue = ratingValue;
+    await album.save();
 
     res.status(200).json({ message: "Album Rated!" });
   } catch (err) {
@@ -76,14 +78,18 @@ exports.rateArtist = async (req, res, next) => {
     const user = await User.findById(req.user.id);
     const userId = user.id;
 
+    const artist = await Artist.findById(artistId);
+    
     if (ratingValue < 0 || ratingValue > 5) {
       return res
         .status(400)
         .json({ message: "Rating value must be between 0 and 5" });
     }
 
-    rating = new Rating({ artistId, userId, ratingValue });
+    const rating = new Rating({ artistId, userId, ratingValue });
     await rating.save();
+    artist.ratingValue = ratingValue;
+    await artist.save();
 
     res.status(200).json({ message: "Artist Rated!" });
   } catch (err) {
