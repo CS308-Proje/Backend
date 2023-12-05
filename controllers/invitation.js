@@ -1,15 +1,15 @@
-const mongoose = require('mongoose');
-const express = require('express');
+const mongoose = require("mongoose");
+const express = require("express");
 const router = express.Router();
-const Invitation = require('../models/Invitation');
-const User = require('../models/User');
-const { addFriend } = require('../controllers/friends');
+const Invitation = require("../models/Invitation");
+const User = require("../models/User");
+const { addFriend } = require("../controllers/friends");
 const ErrorResponse = require("../error/error-response");
 
 //Send Invitation
 exports.createInvitation = async (req, res, next) => {
   try {
-    const { targetUserId } = req.body;
+    const targetUserId = req.params.id;
 
     const user = await User.findById(req.user.id);
     const userId = user.id;
@@ -21,13 +21,11 @@ exports.createInvitation = async (req, res, next) => {
     });
 
     if (existingInvitation) {
-      return res.status(400).json({ message: 'Invitation already exists' });
+      return res.status(400).json({ message: "Invitation already exists" });
     }
 
     if (!user || !targetUser) {
-      console.log('User:', user);
-      console.log('Target User:', targetUser);
-      return res.status(404).json({ message: 'User or target user not found' });
+      return res.status(404).json({ message: "User or target user not found" });
     }
 
     const invitation = new Invitation({
@@ -37,7 +35,7 @@ exports.createInvitation = async (req, res, next) => {
 
     await invitation.save();
 
-    return res.status(201).json({ message: 'Invitation sent!' });
+    return res.status(201).json({ message: "Invitation sent!" });
   } catch (err) {
     next(err);
   }
@@ -49,23 +47,22 @@ exports.deleteInvitation = async (req, res, next) => {
     const { invitationId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(invitationId)) {
-      return res.status(400).json({ message: 'Invalid Invitation ID' });
+      return res.status(400).json({ message: "Invalid Invitation ID" });
     }
 
     const invitation = await Invitation.findById(invitationId);
 
     if (!invitation) {
-      return res.status(404).json({ message: 'Invitation not found' });
+      return res.status(404).json({ message: "Invitation not found" });
     }
 
     await invitation.deleteOne();
 
-    return res.status(201).json({message: 'Invitation deleted!'});
+    return res.status(200).json({ message: "Invitation deleted!" });
   } catch (err) {
     next(err);
   }
 };
-
 
 // Update Invitation status
 exports.updateStatus = async (req, res, next) => {
@@ -79,42 +76,35 @@ exports.updateStatus = async (req, res, next) => {
     const friendId = invitation.target_user_id;
 
     if (!invitation) {
-      return res.status(404).json({ message: 'Invitation not found' });
+      return res.status(404).json({ message: "Invitation not found" });
     }
 
-    if (status === 'accepted') {
+    if (status === "accepted") {
       const result1 = await addFriend({
-        body: {userId, friendId}
+        body: { userId, friendId },
       });
 
-      
-      return res.status(201).json({ message: 'You have accepted the invite' });
-
-      
-    } else if (status === 'rejected') {
+      return res.status(200).json({ message: "You have accepted the invite" });
+    } else if (status === "rejected") {
       await Invitation.deleteOne({ _id: invitationId });
-      return res.status(201).json({ message: 'Invitation deleted!' });
+      return res.status(200).json({ message: "Invitation deleted!" });
     }
 
     if (invitation.status) {
       invitation.status = status;
       await invitation.save();
-      res.status(200).json({ message: 'Invitation status updated' });
+      res.status(200).json({ message: "Invitation status updated" });
     } else {
-      res.status(400).json({ message: 'Invalid status provided' });
+      res.status(400).json({ message: "Invalid status provided" });
     }
   } catch (err) {
     next(err);
   }
 };
 
-
-
-
 //Gets all pending invitations of the user
 exports.getAllInvitations = async (req, res, next, limitResponse = false) => {
   try {
-    
     const user = await User.findById(req.user.id);
     const userId = user.id;
 
@@ -131,26 +121,19 @@ exports.getAllInvitations = async (req, res, next, limitResponse = false) => {
       {
       return message;
       }
-
-    }
-
-    else
-    {
+    } else {
       if (invitations.length === 0) {
-        return res.status(200).json({ message: 'No pending invitations at the time' });
-      }
-  
-      else
-      {
-      res.status(200).json({
-        message: message,
-        invitations: invitations
-      });
+        return res
+          .status(200)
+          .json({ message: "No pending invitations at the time" });
+      } else {
+        res.status(200).json({
+          message: message,
+          invitations: invitations,
+        });
       }
     }
-    
   } catch (err) {
     next(err);
   }
 };
-
