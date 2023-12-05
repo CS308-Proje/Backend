@@ -183,26 +183,6 @@ exports.addSong = async (req, res, next) => {
     album.albumImg = songData.albumImg;
     await artist.save();
     await album.save();
-    /*
-    await spotifyApi
-      .searchTracks(
-        `track:${songData.songName} artist:${songData.mainArtistName} album:${songData.albumName}`,
-        { limit: 1 }
-      )
-      .then(
-        function (data) {
-          console.log(data.body.tracks);
-          songData.popularity = data.body.tracks.items[0].popularity;
-          songData.release_date = data.body.tracks.items[0].album.release_date;
-          songData.duration_ms = data.body.tracks.items[0].duration_ms;
-          songData.albumImg = data.body.tracks.items[0].album.images[1].url;
-        },
-        function (err) {
-          console.log("Something went wrong!", err);
-        }
-      );
-*/
-    //? IMPORTANT
 
     songData.albumId = album._id;
     songData.mainArtistId = artist._id;

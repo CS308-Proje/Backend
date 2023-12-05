@@ -34,7 +34,7 @@ exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
 
         if (
           recommendedSongs.some(
-            (item) => item.mainArtistName === song.mainArtistName
+            item => item.mainArtistName === song.mainArtistName
           )
         ) {
           continue;
@@ -60,7 +60,7 @@ exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
               featuringArtistNames:
                 spotifyAPIdata.body.tracks.items[i].artists
                   .slice(1)
-                  .map((artist) => artist.name) || [],
+                  .map(artist => artist.name) || [],
 
               albumName: spotifyAPIdata.body.tracks.items[i].album.name,
               albumImg: spotifyAPIdata.body.tracks.items[i].album.images[0].url,
@@ -125,9 +125,7 @@ exports.getRecommendationsBasedOnAlbumRating = async (req, res, next) => {
           albumId: album.id,
           userId: userId,
         });
-        if (
-          recommendedSongs.some((item) => item.mainArtistName === album.name)
-        ) {
+        if (recommendedSongs.some(item => item.mainArtistName === album.name)) {
           continue;
         }
 
@@ -152,7 +150,7 @@ exports.getRecommendationsBasedOnAlbumRating = async (req, res, next) => {
               featuringArtistNames:
                 spotifyAPIdata.body.tracks.items[i].artists
                   .slice(1)
-                  .map((artist) => artist.name) || [],
+                  .map(artist => artist.name) || [],
 
               albumName: spotifyAPIdata.body.tracks.items[i].album.name,
               albumImg: spotifyAPIdata.body.tracks.items[i].album.images[0].url,
@@ -209,7 +207,7 @@ exports.getRecommendationsBasedOnArtistRating = async (req, res, next) => {
 
         if (
           recommendedSongs.some(
-            (item) => item.mainArtistName === artist.artistName
+            item => item.mainArtistName === artist.artistName
           )
         ) {
           continue;
@@ -237,7 +235,7 @@ exports.getRecommendationsBasedOnArtistRating = async (req, res, next) => {
               featuringArtistNames:
                 spotifyAPIdata.body.tracks.items[i].artists
                   .slice(1)
-                  .map((artist) => artist.name) || [],
+                  .map(artist => artist.name) || [],
 
               albumName: spotifyAPIdata.body.tracks.items[i].album.name,
               albumImg: spotifyAPIdata.body.tracks.items[i].album.images[0].url,
@@ -303,7 +301,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
     for (let index = 0; index < highRatedSongs.length; index++) {
       const song = highRatedSongs[index];
 
-      if (recommendedSongs.some((item) => item.songName === song.songName)) {
+      if (recommendedSongs.some(item => item.songName === song.songName)) {
         continue;
       }
 
@@ -339,7 +337,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
               featuringArtistNames:
                 spotifyRecommandedSongs.body.tracks[index].artists
                   .slice(1)
-                  .map((artist) => artist.name) || [],
+                  .map(artist => artist.name) || [],
 
               albumName: spotifyRecommandedSongs.body.tracks[index].album.name,
               albumImg:
@@ -383,7 +381,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
             featuringArtistNames:
               spotifyRecommandedSongs.body.tracks[index].artists
                 .slice(1)
-                .map((artist) => artist.name) || [],
+                .map(artist => artist.name) || [],
 
             albumName: spotifyRecommandedSongs.body.tracks[index].album.name,
             albumImg:
@@ -437,6 +435,13 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
       createdAt: { $lte: thirtyDaysAgo },
     });
 
+    if (!highRatedSongs || highRatedSongs.length === 0) {
+      return res.status(400).json({
+        message: "You do not have temporal recommendations yet.",
+        success: false,
+      });
+    }
+
     for (index = 0; index < highRatedSongs.length; ) {
       const songToCheckIfTheUserRatedThatArtistsSongLately = await Song.findOne(
         {
@@ -461,7 +466,7 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
 
         if (
           recommendedSongs.some(
-            (item) => item.mainArtistName === song.mainArtistName
+            item => item.mainArtistName === song.mainArtistName
           )
         ) {
           continue;
@@ -487,7 +492,7 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
               featuringArtistNames:
                 spotifyAPIdata.body.tracks.items[i].artists
                   .slice(1)
-                  .map((artist) => artist.name) || [],
+                  .map(artist => artist.name) || [],
 
               albumName: spotifyAPIdata.body.tracks.items[i].album.name,
               albumImg: spotifyAPIdata.body.tracks.items[i].album.images[0].url,
@@ -553,12 +558,12 @@ exports.getRecommendationsBasedOnFriendActivity = async (
     const user_albums = await Album.find({ userId: user.id });
     const user_artists = await Artist.find({ userId: user.id });
 
-    const userSongsIds = new Set(user_songs.map((song) => song._id.toString()));
+    const userSongsIds = new Set(user_songs.map(song => song._id.toString()));
     const userAlbumsIds = new Set(
-      user_albums.map((album) => album._id.toString())
+      user_albums.map(album => album._id.toString())
     );
     const userArtistsIds = new Set(
-      user_artists.map((artist) => artist._id.toString())
+      user_artists.map(artist => artist._id.toString())
     );
 
     for (const friend of user.friends) {
@@ -610,13 +615,13 @@ exports.getRecommendationsBasedOnFriendActivity = async (
           _id: { $in: Array.from(friendArtistsIds) },
         });
 
-        songs.forEach((song) =>
+        songs.forEach(song =>
           recommendedSongs.push({ song, recommendedBy: friendId })
         );
-        albums.forEach((album) =>
+        albums.forEach(album =>
           recommendedAlbums.push({ album, recommendedBy: friendId })
         );
-        artists.forEach((artist) =>
+        artists.forEach(artist =>
           recommendedArtists.push({ artist, recommendedBy: friendId })
         );
       }
