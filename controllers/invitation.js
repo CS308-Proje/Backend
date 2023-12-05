@@ -120,18 +120,16 @@ exports.getAllInvitations = async (req, res, next, limitResponse = false) => {
 
     const invitations = await Invitation.find({ target_user_id: userId });
     const message = `You have ${invitations.length} pending invitations.`;
-
+    const null_message = "No pending invitations at the time"
 
     if (limitResponse) {
       if (invitations.length === 0) {
-        return res.status(200).json({ message: 'No pending invitations at the time' });
+        return null_message;
       }
   
       else
       {
-      res.status(200).json({
-        message: message,
-      });
+      return message;
       }
 
     }
