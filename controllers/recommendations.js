@@ -410,7 +410,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
   }
 };
 
-exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
+exports.getRecommendationsBasedOnTemporalValues = async (req, res, next, limitResponse = false) => {
   try {
     const user = await User.findById(req.user.id);
     const userId = user.id;
@@ -523,6 +523,15 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next) => {
       recommendedSong = recommendedSongs[randomIndex];
     }
 
+    if (limitResponse) { 
+      if(recommendedSongs.length === 0) {
+        return "You do not have temporal recommendations yet.";
+      }
+      else {
+        return `You have ${recommendedSongs.length} new recommendations based on temporal values.`;
+      }
+    }
+
     return res.status(200).json({
       songs: recommendedSong,
       success: true,
@@ -569,11 +578,16 @@ exports.getRecommendationsBasedOnFriendActivity = async (req, res, next, limitRe
 
         const songs = await Song.find({_id: { $in: Array.from(friendSongsIds) }});
         songs.forEach((song) => {
-          if (!userSongNames.has(song.songName) && recommendedSongs.length < maxNum) {
+
+          const isSongAlreadyRecommended = recommendedSongs.some(recommendedSong => recommendedSong.song.songName === song.songName);
+          if (!userSongNames.has(song.songName) && 
+              recommendedSongs.length < maxNum && 
+              song.ratingValue >= 4 && 
+              !isSongAlreadyRecommended) {
             recommendedSongs.push({ song, recommendedBy: friendId });
           }
         });
-      }
+       }      
     }
 
     const length = recommendedSongs.length;
