@@ -547,9 +547,7 @@ exports.getRecommendationsBasedOnFriendActivity = async (req, res, next, limitRe
     const null_message = "No new friend activity.";
 
     const user_songs = await Song.find({ userId: user.id });
-
     const userSongNames = new Set(user_songs.map(song => song.songName));
-
 
     for (const friend of user.friends) {
       const friendUser = await User.findById(friend);
@@ -575,12 +573,6 @@ exports.getRecommendationsBasedOnFriendActivity = async (req, res, next, limitRe
             recommendedSongs.push({ song, recommendedBy: friendId });
           }
         });
-
-
-        songs.forEach(song =>
-          recommendedSongs.push({ song, recommendedBy: friendId })
-        );
-
       }
     }
 
