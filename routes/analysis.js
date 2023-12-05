@@ -13,4 +13,6 @@ router.get(
   analysisController.createAnalysisBasedOnSongs
 );
 
+router.get("/song-canvas", isAuth.protect, analysisController.songCanvas);
+
 module.exports = router;
