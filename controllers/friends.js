@@ -36,7 +36,9 @@ exports.addFriend = async (req, res, next) => {
 
 exports.removeFriend = async (req, res, next) => {
   try {
-    const { userId, friendId } = req.body;
+    const userU = await User.findById(req.user.id);
+    const userId = userU.id;
+    const friendId = req.params.id;
 
     const user = await User.findById(userId);
 
@@ -53,7 +55,7 @@ exports.removeFriend = async (req, res, next) => {
     }
 
     user.friends = user.friends.filter(
-      friend => friend.toString() !== friendId
+      (friend) => friend.toString() !== friendId
     );
 
     await user.save();
@@ -69,7 +71,9 @@ exports.removeFriend = async (req, res, next) => {
 
 exports.getAllFriends = async (req, res, next) => {
   try {
-    const userId = req.params.userId;
+    const userU = await User.findById(req.user.id);
+
+    const userId = userU.id;
 
     const user = await User.findById(userId).populate("friends");
 

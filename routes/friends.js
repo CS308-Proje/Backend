@@ -1,14 +1,20 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { addFriend, removeFriend, getAllFriends } = require('../controllers/friends'); 
+const {
+  addFriend,
+  removeFriend,
+  getAllFriends,
+} = require("../controllers/friends");
+
+const isAuth = require("../middlewares/isAuth");
 
 // Route to add a friend
-router.post('/add', addFriend);
+router.post("/add", isAuth.protect, addFriend);
 
 // Route to remove a friend
-router.delete('/remove', removeFriend); 
+router.delete("/remove/:id", isAuth.protect, removeFriend);
 
 // Route to get all friends
-router.get('/all/:userId', getAllFriends);
+router.get("/all", isAuth.protect, getAllFriends);
 
 module.exports = router;

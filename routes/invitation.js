@@ -7,10 +7,10 @@ const {
   getAllInvitations,
 } = require("../controllers/invitation");
 
-const isAuth = require('../middlewares/isAuth'); 
+const isAuth = require("../middlewares/isAuth");
 
 // Create an invitation
-router.post("/createInvitation", isAuth.protect, createInvitation);
+router.post("/createInvitation/:id", isAuth.protect, createInvitation);
 
 // Delete an invitation by ID
 router.delete("/delete/:invitationId", isAuth.protect, deleteInvitation);

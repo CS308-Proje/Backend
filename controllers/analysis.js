@@ -2,6 +2,8 @@ const mongoose = require("mongoose");
 const { Chart } = require("chart.js");
 const User = require("../models/User");
 const Song = require("../models/Song");
+const Album = require("../models/Album");
+const Artist = require("../models/Artist");
 const Rating = require("../models/Rating");
 const { createCanvas, loadImage } = require("canvas");
 const {
@@ -19,7 +21,7 @@ exports.createAnalysis = async (req, res) => {
     const userId = user.id;
 
     const ratings = await Rating.find({ userId: userId });
-    const ssd = ratings.map(rating => rating.ratingValue);
+    const ssd = ratings.map((rating) => rating.ratingValue);
     console.log(ssd);
 
     // Create a chart
@@ -30,7 +32,7 @@ exports.createAnalysis = async (req, res) => {
         datasets: [
           {
             label: "Rating",
-            data: ratings.map(rating => rating.ratingValue),
+            data: ratings.map((rating) => rating.ratingValue),
             backgroundColor: [
               "rgba(255, 99, 132, 0.2)",
               "rgba(54, 162, 235, 0.2)",
@@ -112,8 +114,8 @@ exports.createAnalysisBasedOnSongs = async (req, res) => {
       });
     }
 
-    const songNames = songArray.map(song => song.songName);
-    const songRatings = songArray.map(song => song.ratingValue);
+    const songNames = songArray.map((song) => song.songName);
+    const songRatings = songArray.map((song) => song.ratingValue);
 
     res.writeHead(200, { "Content-Type": "text/html" });
 
@@ -150,7 +152,7 @@ exports.createAnalysisBasedOnSongs = async (req, res) => {
     `);
 
     // Write the HTML body with dynamically generated content
-    songArray.forEach(song => {
+    songArray.forEach((song) => {
       res.write(`
         <div class="song-container">
           <img src="${song.albumImg}" alt="Album Image" class="song-image">
@@ -225,46 +227,101 @@ exports.songCanvas = async (req, res) => {
 
     const startDate = req.query.start;
 
-    const endDate = req.query.end;
+    const type = req.query.type;
 
-    let songArray = [];
-
-    if (startDate && endDate) {
-      songArray = await Song.find({
-        userId: userId,
-        release_date: { $gte: startDate, $lte: endDate },
-      });
-    } else if (startDate && !endDate) {
-      songArray = await Song.find({
-        userId: userId,
-        release_date: { $gte: startDate, $lte: Date.now() },
-      });
-    } else if (!startDate && endDate) {
-      songArray = await Song.find({
-        userId: userId,
-        release_date: { $gte: Date.now(), $lte: endDate },
-      });
-    } else if (!startDate && !endDate) {
-      songArray = await Song.find({
-        userId: userId,
-        ratingValue: { $ne: null },
-      }).sort({ ratingValue: -1 });
-    }
-
-    if (songArray.length === 0 || songArray === undefined) {
+    if (type === null) {
       return res.status(400).json({
-        error: "No songs found",
+        message: "Please enter a type. (album, artist, song)",
         success: false,
       });
     }
-    const canvasHeight = songArray.length * 120 + 50;
+
+    const endDate = req.query.end;
+
+    let array = [];
+
+    if (type === "album") {
+      if (startDate && endDate) {
+        array = await Album.find({
+          userId: userId,
+          release_date: { $gte: startDate, $lte: endDate },
+        });
+      } else if (startDate && !endDate) {
+        array = await Album.find({
+          userId: userId,
+          release_date: { $gte: startDate, $lte: Date.now() },
+        });
+      } else if (!startDate && endDate) {
+        array = await Album.find({
+          userId: userId,
+          release_date: { $gte: Date.now(), $lte: endDate },
+        });
+      } else if (!startDate && !endDate) {
+        array = await Album.find({
+          userId: userId,
+          ratingValue: { $ne: null },
+        }).sort({ ratingValue: -1 });
+      }
+    } else if (type === "artist") {
+      if (startDate && endDate) {
+        array = await Artist.find({
+          userId: userId,
+          release_date: { $gte: startDate, $lte: endDate },
+        });
+      } else if (startDate && !endDate) {
+        array = await Artist.find({
+          userId: userId,
+          release_date: { $gte: startDate, $lte: Date.now() },
+        });
+      } else if (!startDate && endDate) {
+        array = await Artist.find({
+          userId: userId,
+          release_date: { $gte: Date.now(), $lte: endDate },
+        });
+      } else if (!startDate && !endDate) {
+        array = await Artist.find({
+          userId: userId,
+          ratingValue: { $ne: null },
+        }).sort({ ratingValue: -1 });
+      }
+    } else if (type === "song") {
+      if (startDate && endDate) {
+        array = await Song.find({
+          userId: userId,
+          release_date: { $gte: startDate, $lte: endDate },
+        });
+      } else if (startDate && !endDate) {
+        array = await Song.find({
+          userId: userId,
+          release_date: { $gte: startDate, $lte: Date.now() },
+        });
+      } else if (!startDate && endDate) {
+        array = await Song.find({
+          userId: userId,
+          release_date: { $gte: Date.now(), $lte: endDate },
+        });
+      } else if (!startDate && !endDate) {
+        array = await Song.find({
+          userId: userId,
+          ratingValue: { $ne: null },
+        }).sort({ ratingValue: -1 });
+      }
+    }
+
+    if (array.length === 0 || array === undefined) {
+      return res.status(400).json({
+        error: `No ${type} found.`,
+        success: false,
+      });
+    }
+    const canvasHeight = array.length * 120 + 50;
     const canvas = createCanvas(400, canvasHeight);
     const ctx = canvas.getContext("2d");
 
     ctx.fillStyle = "blue";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    const title = "My Favourite Songs";
+    const title = `My favourite ${type}s`;
 
     ctx.fillStyle = "white";
     ctx.font = "30px Arial";
@@ -274,25 +331,54 @@ exports.songCanvas = async (req, res) => {
     ctx.fillText(title, titleX, titleY); // Adjust position
     let y = 50;
     var i = 1;
-    for (const song of songArray) {
+    for (const item of array) {
       // Load image
       ctx.fillStyle = "white";
       ctx.font = "20px Arial";
       ctx.fillText(i, 10, y + 30);
 
-      const image = await loadImage(song.albumImg);
+      if (type === "album") {
+        const image = await loadImage(item.albumImg);
 
-      // Draw image
+        // Draw image
 
-      ctx.drawImage(image, 30, y, 100, 100);
+        ctx.drawImage(image, 30, y, 100, 100);
 
-      // Draw text
-      ctx.fillStyle = "white";
-      ctx.font = "20px Arial";
-      ctx.fontWeight = "bold";
-      ctx.fillText(song.songName, 150, y + 30);
-      ctx.font = "15px Arial";
-      ctx.fillText(song.mainArtistName, 150, y + 60);
+        const artist = await Artist.findById(item.artistId);
+
+        // Draw text
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fontWeight = "bold";
+        ctx.fillText(item.name, 150, y + 30);
+        ctx.font = "15px Arial";
+        ctx.fillText(artist.artistName, 150, y + 60);
+      } else if (type === "artist") {
+        const image = await loadImage(item.artistImg);
+        ctx.drawImage(image, 30, y, 100, 100);
+
+        // Draw text
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fontWeight = "bold";
+        ctx.fillText(item.artistName, 150, y + 30);
+        //ctx.font = "15px Arial";
+        //ctx.fillText(artist.artistName, 150, y + 60);
+      } else if (type === "song") {
+        const image = await loadImage(item.albumImg);
+
+        // Draw image
+
+        ctx.drawImage(image, 30, y, 100, 100);
+
+        // Draw text
+        ctx.fillStyle = "white";
+        ctx.font = "20px Arial";
+        ctx.fontWeight = "bold";
+        ctx.fillText(item.songName, 150, y + 30);
+        ctx.font = "15px Arial";
+        ctx.fillText(item.mainArtistName, 150, y + 60);
+      }
 
       // Adjust Y position for the next item
       y += 120;
