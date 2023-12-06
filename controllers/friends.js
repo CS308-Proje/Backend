@@ -1,7 +1,8 @@
 const User = require("../models/User");
 const ErrorResponse = require("../error/error-response");
-
-exports.addFriend = async (req, res, next) => {
+const Invitation = require("../models/Invitation");
+/*
+exports.addFriend = async (req) => {
   try {
     const { userId, friendId } = req.body;
 
@@ -15,48 +16,62 @@ exports.addFriend = async (req, res, next) => {
       });
     }
 
-    if (user.friends.some(friend => friend.toString() === friendId.toString())) {
-      return res.status(400).json({
-        success: false,
-        message: "Friend is already in your list of friends",
-      });
-    }
-    else 
-    {
+    if (
+      user.friends.some((friend) => friend.toString() === friendId.toString())
+    ) {
+      console.log("Already friends");
+    } else {
       user.friends.push(friendId);
       friend.friends.push(userId);
 
       await user.save();
       await friend.save();
-
-      res.status(200).json({
-        success: true,
-        message: "Friend added successfully",
-     });
-    }    
-    
+    }
   } catch (err) {
-    return res.status(400).json({
-      error: err.message,
-      success: false,
-    });
+    console.log(err.message);
+  }
+};
+*/
+
+exports.addFriend = async (userId, friendId, invitationId) => {
+  // -1 means that the user or friend was not found
+  // -2 means that the friend is already in the user's friend list
+  // 1 means that the friend was added successfully
+  const user = await User.findById(userId);
+  const friend = await User.findById(friendId);
+
+  if (!user || !friend) {
+    return -1;
+  }
+
+  if (
+    user.friends.some((friend) => friend.toString() === friendId.toString())
+  ) {
+    return -2;
+  } else {
+    user.friends.push(friendId);
+    friend.friends.push(userId);
+
+    await user.save();
+    await friend.save();
+    await Invitation.deleteOne({ _id: invitationId });
+    return 1;
   }
 };
 
 exports.removeFriend = async (req, res, next) => {
   try {
-    const userId = req.user.id; 
-    const friendId = req.params.id; 
+    const userId = req.user.id;
+    const friendId = req.params.id;
 
     const user = await User.findById(userId);
     const friend = await User.findById(friendId);
 
-    
     if (!user || !friend) {
       return next(new ErrorResponse("User or friend not found", 404));
     }
 
-    if (!user.friends.some(friendDoc => friendDoc.toString() === friendId)) {
+    if (!user.friends.some((friendDoc) => friendDoc.toString() === friendId)) {
       return res.status(400).json({
         success: false,
         message: "Friend not found in your list of friends",
@@ -113,7 +128,6 @@ exports.getAllFriends = async (req, res, next) => {
   }
 };
 
-
 exports.allowFriendRecommendations = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -147,7 +161,6 @@ exports.allowFriendRecommendations = async (req, res, next) => {
       message: "Friend allowed for recommendations successfully.",
       success: true,
     });
-
   } catch (err) {
     return res.status(400).json({
       error: err.message,
@@ -155,7 +168,6 @@ exports.allowFriendRecommendations = async (req, res, next) => {
     });
   }
 };
-
 
 exports.disallowFriendRecommendations = async (req, res, next) => {
   try {
@@ -183,14 +195,15 @@ exports.disallowFriendRecommendations = async (req, res, next) => {
       });
     }
 
-    user.allowFriendRecommendations = user.allowFriendRecommendations.filter(id => !id.equals(friend._id));
+    user.allowFriendRecommendations = user.allowFriendRecommendations.filter(
+      (id) => !id.equals(friend._id)
+    );
     await user.save();
 
     return res.status(200).json({
       message: "Friend disallowed for recommendations successfully.",
       success: true,
     });
-
   } catch (err) {
     return res.status(400).json({
       error: err.message,

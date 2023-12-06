@@ -10,33 +10,12 @@ exports.createAnalysisBasedOnSongs = async (req, res) => {
     const user = await User.findById(req.user.id);
     const userId = user.id;
 
-    const startDate = req.query.start;
-
-    const endDate = req.query.end;
-
     let songArray = [];
 
-    if (startDate && endDate) {
-      songArray = await Song.find({
-        userId: userId,
-        release_date: { $gte: startDate, $lte: endDate },
-      });
-    } else if (startDate && !endDate) {
-      songArray = await Song.find({
-        userId: userId,
-        release_date: { $gte: startDate, $lte: Date.now() },
-      });
-    } else if (!startDate && endDate) {
-      songArray = await Song.find({
-        userId: userId,
-        release_date: { $gte: Date.now(), $lte: endDate },
-      });
-    } else if (!startDate && !endDate) {
-      songArray = await Song.find({
-        userId: userId,
-        ratingValue: { $ne: null },
-      }).sort({ ratingValue: -1 });
-    }
+    songArray = await Song.find({
+      userId: userId,
+      ratingValue: { $ne: null },
+    }).sort({ ratingValue: -1 });
 
     if (songArray.length === 0 || songArray === undefined) {
       return res.status(400).json({
@@ -44,9 +23,6 @@ exports.createAnalysisBasedOnSongs = async (req, res) => {
         success: false,
       });
     }
-
-    const songNames = songArray.map((song) => song.songName);
-    const songRatings = songArray.map((song) => song.ratingValue);
 
     res.writeHead(200, { "Content-Type": "text/html" });
 
@@ -57,21 +33,28 @@ exports.createAnalysisBasedOnSongs = async (req, res) => {
       <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Songs and Ratings</title>
+        <title>My Favorite Songs</title>
         <style>
+          body {
+            background-color: blue; /* Set the background color to blue */
+            margin: 0; /* Remove default margin */
+            padding: 5px; /* Add some padding */
+          }
+
           .song-container {
             display: flex;
             margin-bottom: 10px;
-            background-color: red;
             padding: 10px;
+            background-color: white; /* Set the background color of each song container */
+            border-radius: 5px; /* Add border-radius for a rounded look */
           }
-  
+
           .song-image {
             max-width: 100px;
             max-height: 100px;
             margin-right: 10px;
           }
-  
+
           .song-details {
             display: flex;
             flex-direction: column;
@@ -80,69 +63,28 @@ exports.createAnalysisBasedOnSongs = async (req, res) => {
         </style>
       </head>
       <body>
+        <h1 style="color: white;">My Favorite Songs</h1>
     `);
 
-    // Write the HTML body with dynamically generated content
+    let counter = 1;
     songArray.forEach((song) => {
       res.write(`
-        <div class="song-container">
-          <img src="${song.albumImg}" alt="Album Image" class="song-image">
-          <div class="song-details">
-            <h3>${song.songName}</h3>
-            <p>Rating: ${song.mainArtistName}</p>
-          </div>
-        </div>
+      <div class="song-container">
+      <div class="song-number">${counter}</div>
+      <img src="${song.albumImg}" alt="Album Image" class="song-image">
+      <div class="song-details">
+        <h3>${song.songName}</h3>
+        <p>${song.mainArtistName}</p>
+      </div>
+    </div>
       `);
+      counter++;
     });
 
-    // Write the HTML footer and end the response
     res.end(`
         </body>
       </html>
     `);
-
-    /*
-    // Create a chart
-    const chart = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: songNames,
-        datasets: [
-          {
-            label: "Rating",
-            data: songRatings,
-            backgroundColor: [
-              "rgba(255, 99, 132, 0.2)",
-              "rgba(54, 162, 235, 0.2)",
-              "rgba(255, 206, 86, 0.2)",
-              "rgba(75, 192, 192, 0.2)",
-              "rgba(153, 102, 255, 0.2)",
-              "rgba(255, 159, 64, 0.2)",
-            ],
-            borderColor: [
-              "rgba(255, 99, 132, 1)",
-              "rgba(54, 162, 235, 1)",
-              "rgba(255, 206, 86, 1)",
-              "rgba(75, 192, 192, 1)",
-              "rgba(153, 102, 255, 1)",
-              "rgba(255, 159, 64, 1)",
-            ],
-            borderWidth: 1,
-          },
-        ],
-      },
-    });
-
-    // Render the chart to a URL
-    const chartUrl = chart.toBase64Image();
-
-    // Use the chart URL as needed
-    
-    return res.status(200).send({
-      success: true,
-      data: chartUrl,
-    });
-    */
   } catch (err) {
     return res.status(400).json({
       error: err.message,

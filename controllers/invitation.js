@@ -80,21 +80,30 @@ exports.updateStatus = async (req, res, next) => {
     }
 
     if (status === "accepted") {
-      const result1 = await addFriend({
-        body: { userId, friendId },
-      });
-      return res.status(200).json({ message: "You have accepted the invite" });
-      
+      const result1 = await addFriend(userId, friendId, invitationId);
+
+      if (result1 === -1) {
+        return res
+          .status(404)
+          .json({ message: "User or friend not found", success: false });
+      }
+      if (result1 === -2) {
+        return res
+          .status(400)
+          .json({ message: "Friend already exists", success: false });
+      }
+
+      if (result1 === 1) {
+        return res
+          .status(200)
+          .json({ message: "You have accepted the invite" });
+      }
     } else if (status === "rejected") {
       await Invitation.deleteOne({ _id: invitationId });
       return res.status(200).json({ message: "Invitation deleted!" });
-    }
-    else
-    {
+    } else {
       return res.status(400).json({ message: "Invalid status" });
     }
-
-    
   } catch (err) {
     next(err);
   }
@@ -108,16 +117,13 @@ exports.getAllInvitations = async (req, res, next, limitResponse = false) => {
 
     const invitations = await Invitation.find({ target_user_id: userId });
     const message = `You have ${invitations.length} pending invitations.`;
-    const null_message = "No pending invitations at the time"
+    const null_message = "No pending invitations at the time";
 
     if (limitResponse) {
       if (invitations.length === 0) {
         return null_message;
-      }
-  
-      else
-      {
-      return message;
+      } else {
+        return message;
       }
     } else {
       if (invitations.length === 0) {
