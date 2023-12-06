@@ -26,6 +26,13 @@ exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
       ratingValue: { $gte: 4 },
     });
 
+    if (!highRatedSongs || highRatedSongs.length === 0) {
+      return res.status(200).json({
+        message:
+          "No songs is rated high enouth to get recommendation. You need to rate at least one song using a rating value greater or equal to 4.",
+      });
+    }
+
     let recommendedSongs = [];
 
     if (highRatedSongs.length > 0) {
@@ -34,7 +41,7 @@ exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
 
         if (
           recommendedSongs.some(
-            item => item.mainArtistName === song.mainArtistName
+            (item) => item.mainArtistName === song.mainArtistName
           )
         ) {
           continue;
@@ -60,7 +67,7 @@ exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
               featuringArtistNames:
                 spotifyAPIdata.body.tracks.items[i].artists
                   .slice(1)
-                  .map(artist => artist.name) || [],
+                  .map((artist) => artist.name) || [],
 
               albumName: spotifyAPIdata.body.tracks.items[i].album.name,
               albumImg: spotifyAPIdata.body.tracks.items[i].album.images[0].url,
@@ -110,6 +117,13 @@ exports.getRecommendationsBasedOnAlbumRating = async (req, res, next) => {
       ratingValue: { $gte: 4 },
     });
 
+    if (!highRatedAlbums || highRatedAlbums.length === 0) {
+      return res.status(200).json({
+        message:
+          "No albums is rated high enouth to get recommendation. You need to rate at least one album using a rating value greater or equal to 4.",
+      });
+    }
+
     let recommendedSongs = [];
 
     if (highRatedAlbums.length > 0) {
@@ -125,7 +139,9 @@ exports.getRecommendationsBasedOnAlbumRating = async (req, res, next) => {
           albumId: album.id,
           userId: userId,
         });
-        if (recommendedSongs.some(item => item.mainArtistName === album.name)) {
+        if (
+          recommendedSongs.some((item) => item.mainArtistName === album.name)
+        ) {
           continue;
         }
 
@@ -150,7 +166,7 @@ exports.getRecommendationsBasedOnAlbumRating = async (req, res, next) => {
               featuringArtistNames:
                 spotifyAPIdata.body.tracks.items[i].artists
                   .slice(1)
-                  .map(artist => artist.name) || [],
+                  .map((artist) => artist.name) || [],
 
               albumName: spotifyAPIdata.body.tracks.items[i].album.name,
               albumImg: spotifyAPIdata.body.tracks.items[i].album.images[0].url,
@@ -199,6 +215,13 @@ exports.getRecommendationsBasedOnArtistRating = async (req, res, next) => {
       ratingValue: { $gte: 4 },
     });
 
+    if (!highRatedArtists || highRatedArtists.length === 0) {
+      return res.status(200).json({
+        message:
+          "No artists is rated high enouth to get recommendation. You need to rate at least one artist using a rating value greater or equal to 4.",
+      });
+    }
+
     let recommendedSongs = [];
 
     if (highRatedArtists.length > 0) {
@@ -207,7 +230,7 @@ exports.getRecommendationsBasedOnArtistRating = async (req, res, next) => {
 
         if (
           recommendedSongs.some(
-            item => item.mainArtistName === artist.artistName
+            (item) => item.mainArtistName === artist.artistName
           )
         ) {
           continue;
@@ -235,7 +258,7 @@ exports.getRecommendationsBasedOnArtistRating = async (req, res, next) => {
               featuringArtistNames:
                 spotifyAPIdata.body.tracks.items[i].artists
                   .slice(1)
-                  .map(artist => artist.name) || [],
+                  .map((artist) => artist.name) || [],
 
               albumName: spotifyAPIdata.body.tracks.items[i].album.name,
               albumImg: spotifyAPIdata.body.tracks.items[i].album.images[0].url,
@@ -301,7 +324,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
     for (let index = 0; index < highRatedSongs.length; index++) {
       const song = highRatedSongs[index];
 
-      if (recommendedSongs.some(item => item.songName === song.songName)) {
+      if (recommendedSongs.some((item) => item.songName === song.songName)) {
         continue;
       }
 
@@ -337,7 +360,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
               featuringArtistNames:
                 spotifyRecommandedSongs.body.tracks[index].artists
                   .slice(1)
-                  .map(artist => artist.name) || [],
+                  .map((artist) => artist.name) || [],
 
               albumName: spotifyRecommandedSongs.body.tracks[index].album.name,
               albumImg:
@@ -381,7 +404,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
             featuringArtistNames:
               spotifyRecommandedSongs.body.tracks[index].artists
                 .slice(1)
-                .map(artist => artist.name) || [],
+                .map((artist) => artist.name) || [],
 
             albumName: spotifyRecommandedSongs.body.tracks[index].album.name,
             albumImg:
@@ -410,7 +433,12 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
   }
 };
 
-exports.getRecommendationsBasedOnTemporalValues = async (req, res, next, limitResponse = false) => {
+exports.getRecommendationsBasedOnTemporalValues = async (
+  req,
+  res,
+  next,
+  limitResponse = false
+) => {
   try {
     const user = await User.findById(req.user.id);
     const userId = user.id;
@@ -436,12 +464,11 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next, limitRe
     });
 
     if (!highRatedSongs || highRatedSongs.length === 0) {
-
       if (limitResponse) {
-        message = 'You do not have temporal recommendations yet.';
+        message = "You do not have temporal recommendations yet.";
         return message;
       }
-      
+
       return res.status(400).json({
         message: "You do not have temporal recommendations yet.",
         success: false,
@@ -472,7 +499,7 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next, limitRe
 
         if (
           recommendedSongs.some(
-            item => item.mainArtistName === song.mainArtistName
+            (item) => item.mainArtistName === song.mainArtistName
           )
         ) {
           continue;
@@ -498,7 +525,7 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next, limitRe
               featuringArtistNames:
                 spotifyAPIdata.body.tracks.items[i].artists
                   .slice(1)
-                  .map(artist => artist.name) || [],
+                  .map((artist) => artist.name) || [],
 
               albumName: spotifyAPIdata.body.tracks.items[i].album.name,
               albumImg: spotifyAPIdata.body.tracks.items[i].album.images[0].url,
@@ -529,14 +556,13 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next, limitRe
       recommendedSong = recommendedSongs[randomIndex];
     }
 
-    if (limitResponse) { 
-      message = '';
+    if (limitResponse) {
+      message = "";
 
-      if(recommendedSongs.length === 0) {
-        message = 'You do not have temporal recommendations yet.';
+      if (recommendedSongs.length === 0) {
+        message = "You do not have temporal recommendations yet.";
         return message;
-      }
-      else {
+      } else {
         message = `You have ${recommendedSongs.length} new recommendations based on temporal values.`;
         return message;
       }
@@ -555,9 +581,14 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next, limitRe
   }
 };
 
-exports.getRecommendationsBasedOnFriendActivity = async (req, res, next, limitResponse = false) => {
+exports.getRecommendationsBasedOnFriendActivity = async (
+  req,
+  res,
+  next,
+  limitResponse = false
+) => {
   try {
-    const user = await User.findById(req.user.id).populate('friends');
+    const user = await User.findById(req.user.id).populate("friends");
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
@@ -565,7 +596,7 @@ exports.getRecommendationsBasedOnFriendActivity = async (req, res, next, limitRe
     const maxNum = 10;
 
     const user_songs = await Song.find({ userId: user.id });
-    const userSongNames = new Set(user_songs.map(song => song.songName));
+    const userSongNames = new Set(user_songs.map((song) => song.songName));
 
     for (const friendId of user.friends) {
       const friendUser = await User.findById(friendId);
@@ -585,25 +616,31 @@ exports.getRecommendationsBasedOnFriendActivity = async (req, res, next, limitRe
           }
         }
 
-        const songs = await Song.find({_id: { $in: Array.from(friendSongsIds) }});
+        const songs = await Song.find({
+          _id: { $in: Array.from(friendSongsIds) },
+        });
         songs.forEach((song) => {
-          const isSongAlreadyRecommended = recommendedSongs.some(recommendedSong => recommendedSong.song.songName === song.songName);
-          if (!userSongNames.has(song.songName) && 
-              recommendedSongs.length < maxNum && 
-              song.ratingValue >= 4 && 
-              !isSongAlreadyRecommended) {
+          const isSongAlreadyRecommended = recommendedSongs.some(
+            (recommendedSong) => recommendedSong.song.songName === song.songName
+          );
+          if (
+            !userSongNames.has(song.songName) &&
+            recommendedSongs.length < maxNum &&
+            song.ratingValue >= 4 &&
+            !isSongAlreadyRecommended
+          ) {
             recommendedSongs.push({ song, recommendedBy: friendId });
           }
         });
-      }      
+      }
     }
 
     const length = recommendedSongs.length;
-    let message = '';
+    let message = "";
 
     if (limitResponse) {
       if (length === 0) {
-        message = 'No new friend activity.';
+        message = "No new friend activity.";
       } else {
         message = `You have ${length} new recommendations based on friend activities.`;
       }

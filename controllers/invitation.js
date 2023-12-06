@@ -115,7 +115,9 @@ exports.getAllInvitations = async (req, res, next, limitResponse = false) => {
     const user = await User.findById(req.user.id);
     const userId = user.id;
 
-    const invitations = await Invitation.find({ target_user_id: userId });
+    const invitations = await Invitation.find({
+      target_user_id: userId,
+    }).populate("user_id");
     const message = `You have ${invitations.length} pending invitations.`;
     const null_message = "No pending invitations at the time";
 

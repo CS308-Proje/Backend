@@ -79,7 +79,7 @@ exports.rateArtist = async (req, res, next) => {
     const userId = user.id;
 
     const artist = await Artist.findById(artistId);
-    
+
     if (ratingValue < 0 || ratingValue > 5) {
       return res
         .status(400)
@@ -94,5 +94,21 @@ exports.rateArtist = async (req, res, next) => {
     res.status(200).json({ message: "Artist Rated!" });
   } catch (err) {
     next(err);
+  }
+};
+
+exports.getAllRatingsBasedOnSongs = async (req, res, next) => {
+  try {
+    const ratings = await Rating.find({
+      userId: req.user.id,
+      songId: { $ne: null },
+    })
+      .populate("songId")
+      .sort({ ratingValue: -1 });
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message,
+      success: false,
+    });
   }
 };
