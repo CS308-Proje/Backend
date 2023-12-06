@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
+const { ObjectId } = require("mongodb");
 
 const UserSchema = new mongoose.Schema({
   name: {
@@ -43,6 +44,11 @@ const UserSchema = new mongoose.Schema({
       ref: "User",
     },
   ],
+
+  allowFriendRecommendations: {
+    type: [ObjectId], 
+    default: [] 
+},
 
   resetPasswordToken: String,
   resetPasswordExpire: Date,
