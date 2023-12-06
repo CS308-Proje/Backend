@@ -436,6 +436,12 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next, limitRe
     });
 
     if (!highRatedSongs || highRatedSongs.length === 0) {
+
+      if (limitResponse) {
+        message = 'You do not have temporal recommendations yet.';
+        return message;
+      }
+      
       return res.status(400).json({
         message: "You do not have temporal recommendations yet.",
         success: false,
@@ -524,11 +530,15 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next, limitRe
     }
 
     if (limitResponse) { 
+      message = '';
+
       if(recommendedSongs.length === 0) {
-        return "You do not have temporal recommendations yet.";
+        message = 'You do not have temporal recommendations yet.';
+        return message;
       }
       else {
-        return `You have ${recommendedSongs.length} new recommendations based on temporal values.`;
+        message = `You have ${recommendedSongs.length} new recommendations based on temporal values.`;
+        return message;
       }
     }
 
@@ -547,22 +557,21 @@ exports.getRecommendationsBasedOnTemporalValues = async (req, res, next, limitRe
 
 exports.getRecommendationsBasedOnFriendActivity = async (req, res, next, limitResponse = false) => {
   try {
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user.id).populate('friends');
     const threeDaysAgo = new Date();
     threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
     let recommendedSongs = [];
-    const maxNum = 10; 
-    const null_message = "No new friend activity.";
+    const maxNum = 10;
 
     const user_songs = await Song.find({ userId: user.id });
     const userSongNames = new Set(user_songs.map(song => song.songName));
 
-    for (const friend of user.friends) {
-      const friendUser = await User.findById(friend);
-      const friendId = friendUser.id;
+    for (const friendId of user.friends) {
+      const friendUser = await User.findById(friendId);
 
-      if (friendUser.allowFriendRecommendations === true) {
+      // Check if the user is in the friend's allowFriendRecommendations list
+      if (friendUser.allowFriendRecommendations.includes(user._id.toString())) {
         const friendRatings = await Rating.find({
           userId: friendId,
           createdAt: { $gte: threeDaysAgo },
@@ -578,7 +587,6 @@ exports.getRecommendationsBasedOnFriendActivity = async (req, res, next, limitRe
 
         const songs = await Song.find({_id: { $in: Array.from(friendSongsIds) }});
         songs.forEach((song) => {
-
           const isSongAlreadyRecommended = recommendedSongs.some(recommendedSong => recommendedSong.song.songName === song.songName);
           if (!userSongNames.has(song.songName) && 
               recommendedSongs.length < maxNum && 
@@ -587,23 +595,19 @@ exports.getRecommendationsBasedOnFriendActivity = async (req, res, next, limitRe
             recommendedSongs.push({ song, recommendedBy: friendId });
           }
         });
-       }      
+      }      
     }
 
     const length = recommendedSongs.length;
+    let message = '';
 
     if (limitResponse) {
-        message = '';
-
       if (length === 0) {
         message = 'No new friend activity.';
-
       } else {
         message = `You have ${length} new recommendations based on friend activities.`;
-        
       }
       return message;
-    
     } else {
       if (length === 0) {
         return res.status(200).json({

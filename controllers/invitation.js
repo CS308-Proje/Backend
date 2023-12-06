@@ -83,20 +83,18 @@ exports.updateStatus = async (req, res, next) => {
       const result1 = await addFriend({
         body: { userId, friendId },
       });
-
       return res.status(200).json({ message: "You have accepted the invite" });
+      
     } else if (status === "rejected") {
       await Invitation.deleteOne({ _id: invitationId });
       return res.status(200).json({ message: "Invitation deleted!" });
     }
-
-    if (invitation.status) {
-      invitation.status = status;
-      await invitation.save();
-      res.status(200).json({ message: "Invitation status updated" });
-    } else {
-      res.status(400).json({ message: "Invalid status provided" });
+    else
+    {
+      return res.status(400).json({ message: "Invalid status" });
     }
+
+    
   } catch (err) {
     next(err);
   }
