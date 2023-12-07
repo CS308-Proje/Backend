@@ -450,6 +450,7 @@ exports.analysisBasedOnArtistsSongsCount = async (req, res, next) => {
       songsCount.push(songs.length);
     }
 
+    /*
     const chartDataString = JSON.stringify({
       labels: artistArray,
       datasets: [
@@ -478,7 +479,8 @@ exports.analysisBasedOnArtistsSongsCount = async (req, res, next) => {
         },
       ],
     });
-
+    */
+    /*
     const htmlContent = `
     <html>
       <head>
@@ -497,6 +499,7 @@ exports.analysisBasedOnArtistsSongsCount = async (req, res, next) => {
       </body>
     </html>
   `;
+  */
 
     /* const img = await nodeHtmlToImage({
       html: htmlContent,
@@ -505,8 +508,10 @@ exports.analysisBasedOnArtistsSongsCount = async (req, res, next) => {
     var base64Image = img.toString("base64");
     base64Image = "data:image/png;base64," + base64Image;
 */
-    res.header("Content-Type", "text/html");
-    return res.status(200).send(htmlContent);
+    return res.status(200).json({
+      success: true,
+      data: songsCount,
+    });
   } catch (err) {
     return res.status(400).json({
       message: err.message,
