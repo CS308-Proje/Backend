@@ -39,14 +39,6 @@ exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
       for (let index = 0; index < highRatedSongs.length; index++) {
         const song = highRatedSongs[index];
 
-        if (
-          recommendedSongs.some(
-            (item) => item.mainArtistName === song.mainArtistName
-          )
-        ) {
-          continue;
-        }
-
         let songItems = {};
         const artistName = song.mainArtistName;
         const spotifyAPIdata = await spotifyApi.searchTracks(
@@ -56,9 +48,6 @@ exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
 
         if (spotifyAPIdata.body.tracks.items.length > 0) {
           for (let i = 0; i < spotifyAPIdata.body.tracks.items.length; i++) {
-            if (song.songName === spotifyAPIdata.body.tracks.items[i].name) {
-              continue;
-            }
             songItems = {
               userId: userId,
               songName: spotifyAPIdata.body.tracks.items[i].name,
