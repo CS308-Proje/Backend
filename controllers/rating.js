@@ -96,19 +96,3 @@ exports.rateArtist = async (req, res, next) => {
     next(err);
   }
 };
-
-exports.getAllRatingsBasedOnSongs = async (req, res, next) => {
-  try {
-    const ratings = await Rating.find({
-      userId: req.user.id,
-      songId: { $ne: null },
-    })
-      .populate("songId")
-      .sort({ ratingValue: -1 });
-  } catch (err) {
-    return res.status(400).json({
-      message: err.message,
-      success: false,
-    });
-  }
-};

@@ -28,4 +28,10 @@ router.post(
 
 router.post("/transfer-songs", isAuth.protect, songController.transferSongs);
 
+router.get(
+  "/directly-from-spotify",
+  isAuth.protect,
+  songController.addFromSpotifyAPIDirectly
+);
+
 module.exports = router;

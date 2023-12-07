@@ -11,4 +11,10 @@ router.get(
   analysisController.createAnalysisBasedOnSongs
 );
 
+router.get(
+  "/artist-average-analysis",
+  isAuth.protect,
+  analysisController.analysisBasedOnArtistSongs
+);
+
 module.exports = router;

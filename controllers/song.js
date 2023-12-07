@@ -688,3 +688,49 @@ exports.transferSongs = async (req, res, next) => {
     });
   }
 };
+
+exports.addFromSpotifyAPIDirectly = async (req, res, next) => {
+  try {
+    const token = await getSpotifyAccessToken();
+    const spotifyApi = new SpotifyWebApi({
+      clientId: process.env.CLIENT_ID,
+      clientSecret: process.env.CLIENT_SECRET,
+      accessToken: token,
+    });
+
+    const songName = req.query.songName;
+
+    const spotifyAPIdata = await spotifyApi.searchTracks(`track:${songName}`, {
+      limit: 10,
+    });
+
+    let songsArray = [];
+
+    const array = spotifyAPIdata.body.tracks.items;
+
+    for (let index = 0; index < array.length; index++) {
+      const element = array[index];
+
+      const songData = {
+        songName: element.name,
+        mainArtistName: element.artists[0].name,
+        albumName: element.album.name,
+        albumImg: element.album.images[1].url,
+        featuringArtistNames: element.artists
+          .slice(1)
+          .map((artist) => artist.name),
+      };
+      songsArray.push(songData);
+    }
+
+    return res.status(201).json({
+      songsArray,
+      success: true,
+    });
+  } catch (err) {
+    res.status(400).json({
+      error: err,
+      success: false,
+    });
+  }
+};
