@@ -869,3 +869,123 @@ exports.addSongToDBThatComesFromSpotifyAPI = async (req, res, next) => {
     });
   }
 };
+
+exports.addSongThatIsNotFromSpotifyAPI = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    const userId = user._id;
+
+    const songData = { userId, ...req.body };
+
+    if ((await isSongInDB(songData)) === true) {
+      return res.status(400).json({
+        message: "Song is already in the database!",
+        success: false,
+      });
+    }
+
+    const albumName = req.body.albumName;
+
+    let album = null;
+    let artist = null;
+
+    if ((await isAlbumExits(songData)) === false) {
+      album = await Album.create({
+        userId: userId,
+        name: albumName,
+      });
+    } else {
+      album = await Album.findOne({
+        userId: userId,
+        name: albumName,
+      });
+    }
+
+    if ((await isArtistExists(songData)) === false) {
+      artist = await Artist.create({
+        userId: userId,
+        artistName: req.body.mainArtistName,
+      });
+    } else {
+      artist = await Artist.findOne({
+        userId: userId,
+        artistName: req.body.mainArtistName,
+      });
+    }
+
+    album.artistId = artist._id;
+
+    //? IMPORTANT
+    let artistImg =
+      "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
+
+    artist.artistImg = artistImg;
+
+    //* Artist image part is over
+
+    artist.artistImg =
+      "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
+    songData.popularity = undefined;
+
+    songData.albumImg =
+      "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
+
+    album.release_date = songData.release_date;
+    album.albumImg = songData.albumImg;
+    await artist.save();
+    await album.save();
+
+    songData.albumId = album._id;
+    songData.mainArtistId = artist._id;
+    songData.featuringArtistId = [];
+    for (let index = 0; index < req.body.featuringArtistNames.length; index++) {
+      const featuringArtistName = req.body.featuringArtistNames[index];
+      let featuringArtist;
+      if (
+        (await isFeaturingArtistExist(featuringArtistName, userId)) === false
+      ) {
+        featuringArtist = await Artist.create({
+          userId: userId,
+          artistName: featuringArtistName,
+        });
+
+        featuringArtist.artistImg =
+          "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
+
+        await featuringArtist.save();
+      } else {
+        featuringArtist = await Artist.findOne({
+          userId: userId,
+          artistName: featuringArtistName,
+        });
+      }
+
+      songData.featuringArtistId.push(featuringArtist._id);
+    }
+    const song = await Song.create({
+      userId: songData.userId,
+      songName: songData.songName,
+      mainArtistName: songData.mainArtistName,
+      mainArtistId: songData.mainArtistId,
+      featuringArtistNames: songData.featuringArtistNames,
+      featuringArtistId: songData.featuringArtistId,
+      albumName: songData.albumName,
+      albumId: songData.albumId,
+      popularity: songData.popularity,
+      release_date: songData.release_date,
+      duration_ms: songData.duration_ms,
+      albumImg: songData.albumImg,
+    });
+
+    return res.status(201).json({
+      song,
+      success: true,
+    });
+  } catch (err) {
+    res.status(400).json({
+      error: err,
+      success: false,
+    });
+  }
+};

@@ -40,4 +40,10 @@ router.post(
   songController.addSongToDBThatComesFromSpotifyAPI
 );
 
+router.post(
+  "/add-song-not-from-spotify",
+  isAuth.protect,
+  songController.addSongThatIsNotFromSpotifyAPI
+);
+
 module.exports = router;
