@@ -34,4 +34,10 @@ router.get(
   songController.addFromSpotifyAPIDirectly
 );
 
+router.post(
+  "/spotify-search-to-db",
+  isAuth.protect,
+  songController.addSongToDBThatComesFromSpotifyAPI
+);
+
 module.exports = router;

@@ -719,6 +719,10 @@ exports.addFromSpotifyAPIDirectly = async (req, res, next) => {
         featuringArtistNames: element.artists
           .slice(1)
           .map((artist) => artist.name),
+        popularity: element.popularity,
+        duration_ms: element.duration_ms,
+        release_date: element.album.release_date,
+        artistId: element.artists[0].id,
       };
       songsArray.push(songData);
     }
@@ -730,6 +734,137 @@ exports.addFromSpotifyAPIDirectly = async (req, res, next) => {
   } catch (err) {
     res.status(400).json({
       error: err,
+      success: false,
+    });
+  }
+};
+
+exports.addSongToDBThatComesFromSpotifyAPI = async (req, res, next) => {
+  try {
+    const token = await getSpotifyAccessToken();
+    const spotifyApi = new SpotifyWebApi({
+      clientId: process.env.CLIENT_ID,
+      clientSecret: process.env.CLIENT_SECRET,
+      accessToken: token,
+    });
+    const user = await User.findById(req.user.id);
+    const userId = user.id;
+
+    const songData = { userId, ...req.body };
+
+    if ((await isSongInDB(songData)) === true) {
+      return res.status(400).json({
+        message: "Song is already in the database!",
+        success: false,
+      });
+    }
+
+    let album = null;
+    let artist = null;
+
+    if ((await isAlbumExits(songData)) === false) {
+      album = await Album.create({
+        userId: userId,
+        name: songData.albumName,
+      });
+    } else {
+      album = await Album.findOne({
+        userId: userId,
+        name: songData.albumName,
+      });
+    }
+
+    if ((await isArtistExists(songData)) === false) {
+      artist = await Artist.create({
+        userId: userId,
+        artistName: songData.mainArtistName,
+      });
+    } else {
+      artist = await Artist.findOne({
+        userId: userId,
+        artistName: songData.mainArtistName,
+      });
+    }
+
+    album.artistId = artist._id;
+
+    //? IMPORTANT
+    let artistImg = "";
+
+    //* For artist image
+    const artistId = songData.artistId;
+    // Use the artistId as needed
+    const artistData = await spotifyApi.getArtist(artistId);
+
+    artistImg = artistData.body.images[1].url;
+
+    artist.artistImg = artistImg;
+
+    //* Artist image part is over
+
+    album.release_date = songData.release_date;
+    album.albumImg = songData.albumImg;
+    await artist.save();
+    await album.save();
+
+    songData.albumId = album._id;
+    songData.mainArtistId = artist._id;
+    songData.featuringArtistId = [];
+    for (let index = 0; index < songData.featuringArtistNames.length; index++) {
+      const featuringArtistName = songData.featuringArtistNames[index];
+      let featuringArtist;
+      if (
+        (await isFeaturingArtistExist(featuringArtistName, userId)) === false
+      ) {
+        featuringArtist = await Artist.create({
+          userId: userId,
+          artistName: featuringArtistName,
+        });
+
+        const featuringArtistImg = await spotifyApi.searchArtists(
+          `${featuringArtistName}`,
+          { limit: 1 }
+        );
+
+        if (featuringArtistImg) {
+          featuringArtist.artistImg =
+            featuringArtistImg.body.artists.items[0].images[1].url;
+        } else {
+          featuringArtist.artistImg =
+            "https://www.generationsforpeace.org/wp-content/uploads/2018/03/empty-300x240.jpg";
+        }
+        await featuringArtist.save();
+      } else {
+        featuringArtist = await Artist.findOne({
+          userId: userId,
+          artistName: featuringArtistName,
+        });
+      }
+
+      songData.featuringArtistId.push(featuringArtist._id);
+    }
+    const song = await Song.create({
+      userId: songData.userId,
+      songName: songData.songName,
+      mainArtistName: songData.mainArtistName,
+      mainArtistId: songData.mainArtistId,
+      featuringArtistNames: songData.featuringArtistNames,
+      featuringArtistId: songData.featuringArtistId,
+      albumName: songData.albumName,
+      albumId: songData.albumId,
+      popularity: songData.popularity,
+      release_date: songData.release_date,
+      duration_ms: songData.duration_ms,
+      albumImg: songData.albumImg,
+    });
+
+    return res.status(201).json({
+      song,
+      success: true,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message,
       success: false,
     });
   }
