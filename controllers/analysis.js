@@ -273,6 +273,8 @@ exports.analysisBasedOnArtistSongs = async (req, res, next) => {
 
     let averageRatings = [];
 
+    var songsOfAnArtist = [];
+
     if (artistArray === null || artistArray.length === 0) {
       return res.status(400).json({
         error: "Please enter an artist name or names.",
@@ -282,16 +284,32 @@ exports.analysisBasedOnArtistSongs = async (req, res, next) => {
 
     for (let i = 0; i < artistArray.length; i++) {
       if (start && end) {
+        songsOfAnArtist = await Song.find({
+          userId: userId,
+          mainArtistName: artistArray[i],
+          createdAt: { $gte: start, $lte: end },
+        });
       } else if (!start && end) {
+        songsOfAnArtist = await Song.find({
+          userId: userId,
+          mainArtistName: artistArray[i],
+          createdAt: { $lte: end },
+        });
       } else if (start && !end) {
+        songsOfAnArtist = await Song.find({
+          userId: userId,
+          mainArtistName: artistArray[i],
+          createdAt: { $gte: start },
+        });
       } else if (!start && !end) {
+        songsOfAnArtist = await Song.find({
+          userId: userId,
+          mainArtistName: artistArray[i],
+        });
       }
-      const songsOfAnArtist = await Song.find({
-        userId: userId,
-        mainArtistName: artistArray[i],
-      });
 
       if (!songsOfAnArtist || songsOfAnArtist.length === 0) {
+        continue;
         return res.status(400).json({
           error: `No songs with artist named ${artistArray[i]} is found.`,
           success: false,
@@ -370,6 +388,125 @@ exports.analysisBasedOnArtistSongs = async (req, res, next) => {
       success: true,
       data: base64Image,
     });
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message,
+      success: false,
+    });
+  }
+};
+
+exports.analysisBasedOnArtistsSongsCount = async (req, res, next) => {
+  try {
+    const user = await User.findById(req.user.id);
+    const userId = user.id;
+
+    const artistArray = req.body.artists;
+
+    const start = req.query.start;
+
+    const end = req.query.end;
+
+    let songs = [];
+    let songsCount = [];
+
+    if (!artistArray) {
+      return res.status(400).json({
+        error: "Please enter an artist name or names.",
+        success: false,
+      });
+    }
+
+    for (let i = 0; i < artistArray.length; i++) {
+      if (start && end) {
+        songs = await Song.find({
+          userId: userId,
+          mainArtistName: artistArray[i],
+          createdAt: { $gte: start, $lte: end },
+        });
+      } else if (!start && end) {
+        songs = await Song.find({
+          userId: userId,
+          mainArtistName: artistArray[i],
+          createdAt: { $lte: end },
+        });
+      } else if (start && !end) {
+        songs = await Song.find({
+          userId: userId,
+          mainArtistName: artistArray[i],
+          createdAt: { $gte: start },
+        });
+      } else if (!start && !end) {
+        songs = await Song.find({
+          userId: userId,
+          mainArtistName: artistArray[i],
+        });
+      }
+
+      if (!songs) {
+        continue;
+      }
+
+      songsCount.push(songs.length);
+    }
+
+    const chartDataString = JSON.stringify({
+      labels: artistArray,
+      datasets: [
+        {
+          label: "Number of Songs",
+          backgroundColor: [
+            "rgba(255, 99, 132, 0.2)",
+            "rgba(255, 159, 64, 0.2)",
+            "rgba(255, 205, 86, 0.2)",
+            "rgba(75, 192, 192, 0.2)",
+            "rgba(54, 162, 235, 0.2)",
+            "rgba(153, 102, 255, 0.2)",
+            "rgba(201, 203, 207, 0.2)",
+          ],
+          borderColor: [
+            "rgb(255, 99, 132)",
+            "rgb(255, 159, 64)",
+            "rgb(255, 205, 86)",
+            "rgb(75, 192, 192)",
+            "rgb(54, 162, 235)",
+            "rgb(153, 102, 255)",
+            "rgb(201, 203, 207)",
+          ],
+          borderWidth: 1,
+          data: songsCount,
+        },
+      ],
+    });
+
+    const htmlContent = `
+    <html>
+      <head>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      </head>
+      <body>
+        <canvas id="myChart"></canvas>
+        <script>
+          var ctx = document.getElementById('myChart').getContext('2d');
+          var chartData = ${chartDataString};
+          new Chart(ctx, {
+            type: 'doughnut',
+            data: chartData,
+          });
+        </script>
+      </body>
+    </html>
+  `;
+
+    /* const img = await nodeHtmlToImage({
+      html: htmlContent,
+    });
+
+    var base64Image = img.toString("base64");
+    base64Image = "data:image/png;base64," + base64Image;
+*/
+    res.header("Content-Type", "text/html");
+    return res.status(200).send(htmlContent);
   } catch (err) {
     return res.status(400).json({
       message: err.message,

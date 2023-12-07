@@ -43,7 +43,7 @@ exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
         const artistName = song.mainArtistName;
         const spotifyAPIdata = await spotifyApi.searchTracks(
           `artist:${artistName}`,
-          { limit: 2 }
+          { limit: 5 }
         );
 
         if (spotifyAPIdata.body.tracks.items.length > 0) {
@@ -69,7 +69,13 @@ exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
             if ((await isSongInDB(songItems)) === true) {
               continue;
             }
-
+            if (
+              recommendedSongs.some(
+                (item) => item.songName === songItems.songName
+              )
+            ) {
+              continue;
+            }
             recommendedSongs.push(songItems);
           }
         }
@@ -129,7 +135,7 @@ exports.getRecommendationsBasedOnAlbumRating = async (req, res, next) => {
 
         const spotifyAPIdata = await spotifyApi.searchTracks(
           `album:${albumName} artist:${artist.artistName}`,
-          { limit: 2 }
+          { limit: 5 }
         );
 
         if (spotifyAPIdata.body.tracks.items.length > 0) {
@@ -153,6 +159,14 @@ exports.getRecommendationsBasedOnAlbumRating = async (req, res, next) => {
             };
 
             if ((await isSongInDB(songItems)) === true) {
+              continue;
+            }
+
+            if (
+              recommendedSongs.some(
+                (item) => item.songName === songItems.songName
+              )
+            ) {
               continue;
             }
             recommendedSongs.push(songItems);
@@ -212,22 +226,16 @@ exports.getRecommendationsBasedOnArtistRating = async (req, res, next) => {
           continue;
         }
 
-        const oneSong = await Song.findOne({
-          artistId: artist.id,
-          userId: userId,
-        });
-
         let songItems = {};
 
         const spotifyAPIdata = await spotifyApi.searchTracks(
           `artist:${artist.artistName}`,
-          { limit: 2 }
+          { limit: 5 }
         );
 
         if (spotifyAPIdata.body.tracks.items.length > 0) {
           for (let i = 0; i < spotifyAPIdata.body.tracks.items.length; i++) {
             songItems = {
-              userId: userId,
               songName: spotifyAPIdata.body.tracks.items[i].name,
               mainArtistName:
                 spotifyAPIdata.body.tracks.items[i].artists[0].name,
@@ -245,6 +253,14 @@ exports.getRecommendationsBasedOnArtistRating = async (req, res, next) => {
             };
 
             if ((await isSongInDB(songItems)) === true) {
+              continue;
+            }
+
+            if (
+              recommendedSongs.some(
+                (item) => item.songName === songItems.songName
+              )
+            ) {
               continue;
             }
             recommendedSongs.push(songItems);
@@ -329,7 +345,6 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
         ) {
           if (spotifyRecommandedSongs.body.tracks.length > 0) {
             songData = {
-              userId: userId,
               songName: spotifyRecommandedSongs.body.tracks[index].name,
               mainArtistName:
                 spotifyRecommandedSongs.body.tracks[index].artists[0].name,
@@ -349,6 +364,14 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
             };
 
             if ((await isSongInDB(songData)) === true) {
+              continue;
+            }
+
+            if (
+              recommendedSongs.some(
+                (item) => item.songName === songData.songName
+              )
+            ) {
               continue;
             }
             recommendedSongs.push(songData);
@@ -373,7 +396,6 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
       ) {
         if (spotifyRecommandedSongs.body.tracks.length > 0) {
           songData = {
-            userId: userId,
             songName: spotifyRecommandedSongs.body.tracks[index].name,
             mainArtistName:
               spotifyRecommandedSongs.body.tracks[index].artists[0].name,
@@ -473,14 +495,6 @@ exports.getRecommendationsBasedOnTemporalValues = async (
       for (let index = 0; index < highRatedSongs.length; index++) {
         const song = highRatedSongs[index];
 
-        if (
-          recommendedSongs.some(
-            (item) => item.mainArtistName === song.mainArtistName
-          )
-        ) {
-          continue;
-        }
-
         let songItems = {};
         const artistName = song.mainArtistName;
         const spotifyAPIdata = await spotifyApi.searchTracks(
@@ -494,7 +508,6 @@ exports.getRecommendationsBasedOnTemporalValues = async (
               continue;
             }
             songItems = {
-              userId: userId,
               songName: spotifyAPIdata.body.tracks.items[i].name,
               mainArtistName:
                 spotifyAPIdata.body.tracks.items[i].artists[0].name,
@@ -511,6 +524,14 @@ exports.getRecommendationsBasedOnTemporalValues = async (
               duration_ms: spotifyAPIdata.body.tracks.items[i].duration_ms,
             };
             if ((await isSongInDB(songItems)) === true) {
+              continue;
+            }
+
+            if (
+              recommendedSongs.some(
+                (item) => item.songName === songItems.songName
+              )
+            ) {
               continue;
             }
 

@@ -17,4 +17,10 @@ router.get(
   analysisController.analysisBasedOnArtistSongs
 );
 
+router.post(
+  "/artist-songs-count-analysis",
+  isAuth.protect,
+  analysisController.analysisBasedOnArtistsSongsCount
+);
+
 module.exports = router;
