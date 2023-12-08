@@ -7,6 +7,7 @@ const Artist = require("../models/Artist");
 const { isSongInDB } = require("../validation/validate-song");
 const Rating = require("../models/Rating");
 const { getSpotifyAccessToken } = require("../config/spotifyAPI");
+
 const SpotifyWebApi = require("spotify-web-api-node");
 
 exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
@@ -588,46 +589,67 @@ exports.getRecommendationsBasedOnFriendActivity = async (
     const user = await User.findById(req.user.id).populate("friends");
     const userId = user.id;
     const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 10);
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
 
     let recommendedSongs = [];
     const maxNum = 10;
 
-    const user_songs = await Song.find({ userId: userId });
-    const userSongNames = new Set(user_songs.map((song) => song.songName));
+    const friends = user.friends;
 
-    for (const friend of user.friends) {
-      // Check if the user is in the friend's allowFriendRecommendations list
-      if (friend.allowFriendRecommendations.includes(user._id.toString())) {
-        const friendRatings = await Rating.find({
-          userId: friend._id,
-          createdAt: { $gte: threeDaysAgo },
-          ratingValue: { $gte: 4 },
+    if (friends.length === 0) {
+      return res.status(200).json({
+        message: "You do not have any friends in this account.",
+        success: true,
+      });
+    }
+
+    for (let index = 0; index < friends.length; index++) {
+      const friend = friends[index];
+      const friendId = friend._id;
+
+      const friendSongs = await Song.find({
+        userId: friendId,
+        createdAt: { $gte: threeDaysAgo },
+        ratingValue: { $gte: 4 },
+      });
+
+      if (friendSongs.length === 0) {
+        return res.status(200).json({
+          message:
+            "Your friends did not rate any music higher or equal to 4 or he does not have any song.",
+          success: true,
         });
+      }
 
-        let friendSongsIds = new Set();
-        for (let rating of friendRatings) {
-          if (rating.songId) {
-            friendSongsIds.add(rating.songId);
-          }
+      for (let index = 0; index < friendSongs.length; index++) {
+        const friendSong = friendSongs[index];
+
+        const friendSongWithoutId = {
+          userId: userId,
+          songName: friendSong.songName,
+          mainArtistName: friendSong.mainArtistName,
+          featuringArtistNames: friendSong.featuringArtistNames,
+          albumName: friendSong.albumName,
+        };
+
+        if (
+          recommendedSongs.some(
+            (item) => item.songName === friendSong.songName
+          ) ||
+          (await isSongInDB(friendSongWithoutId)) === true
+        ) {
+          continue;
+        }
+        if (recommendedSongs.length >= maxNum) {
+          break;
         }
 
-        const songs = await Song.find({
-          _id: { $in: Array.from(friendSongsIds) },
-        });
-        songs.forEach((song) => {
-          const isSongAlreadyRecommended = recommendedSongs.some(
-            (recommendedSong) => recommendedSong.song.songName === song.songName
-          );
-          if (
-            !userSongNames.has(song.songName) &&
-            recommendedSongs.length < maxNum &&
-            song.ratingValue >= 4 &&
-            !isSongAlreadyRecommended
-          ) {
-            recommendedSongs.push({ song, recommendedBy: friendId });
-          }
-        });
+        const songToRecommend = {
+          recommendedBy: friend.username,
+          recommendedSong: friendSong,
+        };
+
+        recommendedSongs.push(songToRecommend);
       }
     }
 
