@@ -327,7 +327,7 @@ exports.analysisBasedOnArtistSongs = async (req, res, next) => {
 
       averageRatings.push(averageRating);
     }
-
+    /*
     const chartDataString = JSON.stringify({
       labels: artistArray,
       datasets: [
@@ -356,6 +356,8 @@ exports.analysisBasedOnArtistSongs = async (req, res, next) => {
         },
       ],
     });
+    */
+    /* 
 
     const htmlContent = `
     <html>
@@ -375,8 +377,8 @@ exports.analysisBasedOnArtistSongs = async (req, res, next) => {
       </body>
     </html>
   `;
-
-    const img = await nodeHtmlToImage({
+*/
+    /* const img = await nodeHtmlToImage({
       html: htmlContent,
     });
 
@@ -384,9 +386,10 @@ exports.analysisBasedOnArtistSongs = async (req, res, next) => {
     base64Image = "data:image/png;base64," + base64Image;
 
     console.log(averageRatings);
+    */
     return res.status(200).json({
       success: true,
-      data: base64Image,
+      data: averageRatings,
     });
   } catch (err) {
     return res.status(400).json({

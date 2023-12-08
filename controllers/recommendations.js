@@ -586,22 +586,21 @@ exports.getRecommendationsBasedOnFriendActivity = async (
 ) => {
   try {
     const user = await User.findById(req.user.id).populate("friends");
+    const userId = user.id;
     const threeDaysAgo = new Date();
-    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 10);
 
     let recommendedSongs = [];
     const maxNum = 10;
 
-    const user_songs = await Song.find({ userId: user.id });
+    const user_songs = await Song.find({ userId: userId });
     const userSongNames = new Set(user_songs.map((song) => song.songName));
 
-    for (const friendId of user.friends) {
-      const friendUser = await User.findById(friendId);
-
+    for (const friend of user.friends) {
       // Check if the user is in the friend's allowFriendRecommendations list
-      if (friendUser.allowFriendRecommendations.includes(user._id.toString())) {
+      if (friend.allowFriendRecommendations.includes(user._id.toString())) {
         const friendRatings = await Rating.find({
-          userId: friendId,
+          userId: friend._id,
           createdAt: { $gte: threeDaysAgo },
           ratingValue: { $gte: 4 },
         });
