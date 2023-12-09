@@ -594,7 +594,7 @@ exports.getRecommendationsBasedOnFriendActivity = async (
     let recommendedSongs = [];
     const maxNum = 10;
 
-    const friends = user.friends;
+    const friends = user.allowFriendRecommendations;
 
     if (friends.length === 0) {
       return res.status(200).json({
@@ -644,8 +644,10 @@ exports.getRecommendationsBasedOnFriendActivity = async (
           break;
         }
 
+        const friendWhoRecommendedSong = await User.findById(friendId);
+
         const songToRecommend = {
-          recommendedBy: friend.username,
+          recommendedBy: friendWhoRecommendedSong.username,
           recommendedSong: friendSong,
         };
 
