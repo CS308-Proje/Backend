@@ -11,7 +11,7 @@ router.get(
   analysisController.createAnalysisBasedOnSongs
 );
 
-router.get(
+router.post(
   "/artist-average-analysis",
   isAuth.protect,
   analysisController.analysisBasedOnArtistSongs
