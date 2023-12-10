@@ -78,6 +78,9 @@
 
 - Analysis based on the average rating the user provided during the last month on a daily basis as a line chart.
 
+- Result Sharing
+  - Normally, result sharing is handled in the backend. However, Twitter cannot tweet base 64 encoded images. For this reason, we will upload the analysis images to the MongoDB.
+
 
 ## Will Do
 
@@ -87,7 +90,7 @@
 
 - Documentation can be reached by [Postman Documentation](https://www.postman.com/p308backend/workspace/cs308-srs/collection/26964445-4e82c611-a6ff-4651-8174-6d45d6bfa655?action=share&creator=26964445).
 
-- For any question please email eustun@sabanciuniv.edu
+- For any questions please email eustun@sabanciuniv.edu
 
 ## Guide
 
