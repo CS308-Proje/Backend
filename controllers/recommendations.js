@@ -44,7 +44,7 @@ exports.getRecommendationsBasedOnSongRating = async (req, res, next) => {
         const artistName = song.mainArtistName;
         const spotifyAPIdata = await spotifyApi.searchTracks(
           `artist:${artistName}`,
-          { limit: 5 }
+          { limit: 2 }
         );
 
         if (spotifyAPIdata.body.tracks.items.length > 0) {
@@ -136,7 +136,7 @@ exports.getRecommendationsBasedOnAlbumRating = async (req, res, next) => {
 
         const spotifyAPIdata = await spotifyApi.searchTracks(
           `album:${albumName} artist:${artist.artistName}`,
-          { limit: 5 }
+          { limit: 4 }
         );
 
         if (spotifyAPIdata.body.tracks.items.length > 0) {
@@ -219,24 +219,17 @@ exports.getRecommendationsBasedOnArtistRating = async (req, res, next) => {
       for (let index = 0; index < highRatedArtists.length; index++) {
         const artist = highRatedArtists[index];
 
-        if (
-          recommendedSongs.some(
-            (item) => item.mainArtistName === artist.artistName
-          )
-        ) {
-          continue;
-        }
-
         let songItems = {};
 
         const spotifyAPIdata = await spotifyApi.searchTracks(
           `artist:${artist.artistName}`,
-          { limit: 5 }
+          { limit: 4 }
         );
 
         if (spotifyAPIdata.body.tracks.items.length > 0) {
           for (let i = 0; i < spotifyAPIdata.body.tracks.items.length; i++) {
             songItems = {
+              userId: userId,
               songName: spotifyAPIdata.body.tracks.items[i].name,
               mainArtistName:
                 spotifyAPIdata.body.tracks.items[i].artists[0].name,
@@ -323,11 +316,17 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
 
       const spotifyAPIdata = await spotifyApi.searchTracks(
         `track:${song.songName} album:${song.albumName} artist:${song.mainArtistName}`,
-        { limit: 1 }
+        { limit: 3 }
       );
 
-      const artistId = spotifyAPIdata.body.tracks.items[0].artists[0].id;
-      const songId = spotifyAPIdata.body.tracks.items[0].id;
+      let artistId;
+      let songId;
+      if (spotifyAPIdata.body.tracks.items.length === 0) {
+        continue;
+      } else {
+        artistId = spotifyAPIdata.body.tracks.items[0].artists[0].id;
+        songId = spotifyAPIdata.body.tracks.items[0].id;
+      }
 
       songIds.push(songId);
       artistIds.push(artistId);
@@ -336,7 +335,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
         const spotifyRecommandedSongs = await spotifyApi.getRecommendations({
           seed_artists: [artistIds],
           seed_tracks: [songIds],
-          limit: 5,
+          limit: 1,
         });
 
         for (
@@ -346,6 +345,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
         ) {
           if (spotifyRecommandedSongs.body.tracks.length > 0) {
             songData = {
+              userId: userId,
               songName: spotifyRecommandedSongs.body.tracks[index].name,
               mainArtistName:
                 spotifyRecommandedSongs.body.tracks[index].artists[0].name,
@@ -387,7 +387,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
       const spotifyRecommandedSongs = await spotifyApi.getRecommendations({
         seed_artists: [artistIds],
         seed_tracks: [songIds],
-        limit: 2,
+        limit: 1,
       });
 
       for (
@@ -397,6 +397,7 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
       ) {
         if (spotifyRecommandedSongs.body.tracks.length > 0) {
           songData = {
+            userId: userId,
             songName: spotifyRecommandedSongs.body.tracks[index].name,
             mainArtistName:
               spotifyRecommandedSongs.body.tracks[index].artists[0].name,
@@ -413,6 +414,16 @@ exports.getRecommendationsFromSpotify = async (req, res, next) => {
               spotifyRecommandedSongs.body.tracks[index].album.release_date,
             duration_ms: spotifyRecommandedSongs.body.tracks[index].duration_ms,
           };
+
+          if ((await isSongInDB(songData)) === true) {
+            continue;
+          }
+
+          if (
+            recommendedSongs.some((item) => item.songName === songData.songName)
+          ) {
+            continue;
+          }
 
           recommendedSongs.push(songData);
         }

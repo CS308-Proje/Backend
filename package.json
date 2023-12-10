@@ -25,10 +25,13 @@
     "multer": "^1.4.5-lts.1",
     "node-html-to-image": "^4.0.0",
     "nodemailer": "^6.9.7",
+    "passport": "^0.7.0",
+    "passport-twitter": "^1.0.4",
     "puppeteer": "^21.6.0",
     "request": "^2.88.2",
     "request-promise": "^4.2.6",
-    "spotify-web-api-node": "^5.0.2"
+    "spotify-web-api-node": "^5.0.2",
+    "twit": "^2.2.11"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
