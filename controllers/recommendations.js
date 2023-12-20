@@ -636,11 +636,14 @@ exports.getRecommendationsBasedOnFriendActivity = async (
         const friendSong = friendSongs[index];
 
         const friendSongWithoutId = {
-          userId: userId,
           songName: friendSong.songName,
           mainArtistName: friendSong.mainArtistName,
           featuringArtistNames: friendSong.featuringArtistNames,
           albumName: friendSong.albumName,
+          albumImg: friendSong.albumImg,
+          popularity: friendSong.popularity,
+          release_date: friendSong.release_date,
+          duration_ms: friendSong.duration_ms,
         };
 
         if (

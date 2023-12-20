@@ -5,6 +5,6 @@ const exportController = require("../controllers/export");
 const isAuth = require("../middlewares/isAuth");
 
 const router = express.Router();
-router.post("/export", isAuth.protect, exportController.dataExport);
+router.get("/export", isAuth.protect, exportController.dataExport);
 
 module.exports = router;
