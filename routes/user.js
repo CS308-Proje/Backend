@@ -6,6 +6,27 @@ const router = express.Router();
 const isAuth = require("../middlewares/isAuth");
 
 router.get(
+  "/users/songs",
+  isAuth.protect,
+  isAuth.authorize("admin"),
+  userController.getAllSongs
+);
+
+router.get(
+  "/users/albums",
+  isAuth.protect,
+  isAuth.authorize("admin"),
+  userController.getAllAlbums
+);
+
+router.get(
+  "/users/artists",
+  isAuth.protect,
+  isAuth.authorize("admin"),
+  userController.getAllArtists
+);
+
+router.get(
   "/users",
   isAuth.protect,
   isAuth.authorize("admin"),
@@ -47,5 +68,18 @@ router.delete(
   userController.deleteSong
 );
 
+router.delete(
+  "/users/delete-album/:id",
+  isAuth.protect,
+  isAuth.authorize("admin"),
+  userController.deleteAlbum
+);
+
+router.delete(
+  "/users/delete-artist/:id",
+  isAuth.protect,
+  isAuth.authorize("admin"),
+  userController.deleteArtist
+);
 
 module.exports = router;

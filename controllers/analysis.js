@@ -6,6 +6,7 @@ const Artist = require("../models/Artist");
 const Rating = require("../models/Rating");
 const puppeteer = require("puppeteer");
 const nodeHtmlToImage = require("node-html-to-image");
+const Image = require("../models/Image");
 
 exports.createAnalysisBasedOnSongs = async (req, res, next) => {
   try {
@@ -246,12 +247,18 @@ exports.createAnalysisBasedOnSongs = async (req, res, next) => {
       html: htmlContent,
     });
 
-    var base64Image = img.toString("base64");
-    base64Image = "data:image/jpeg;base64," + base64Image;
+    const image = await Image.create({
+      name: "song-analysis",
+      data: img,
+      contentType: "image/png",
+    });
+
+    //var base64Image = img.toString("base64");
+    //base64Image = "data:image/jpeg;base64," + base64Image;
 
     return res.status(200).json({
       success: true,
-      data: base64Image,
+      data: image._id,
     });
   } catch (err) {
     return res.status(400).json({

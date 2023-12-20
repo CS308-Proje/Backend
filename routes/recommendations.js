@@ -41,4 +41,10 @@ router.get(
   recommendationsController.getRecommendationsBasedOnTemporalValues
 );
 
+router.get(
+  "/based-on-ml",
+  isAuth.protect,
+  recommendationsController.getRecommendationsBasedOnMachineLearning
+);
+
 module.exports = router;

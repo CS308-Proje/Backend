@@ -7,6 +7,8 @@ const Artist = require("../models/Artist");
 const { isSongInDB } = require("../validation/validate-song");
 const Rating = require("../models/Rating");
 const { getSpotifyAccessToken } = require("../config/spotifyAPI");
+const { spawn } = require("child_process");
+const fs = require("fs");
 
 const SpotifyWebApi = require("spotify-web-api-node");
 
@@ -691,6 +693,62 @@ exports.getRecommendationsBasedOnFriendActivity = async (
         message: `You have ${length} new recommendations based on friend activities.`,
       });
     }
+  } catch (err) {
+    return res.status(400).json({
+      message: err.message,
+      success: false,
+    });
+  }
+};
+
+
+exports.getRecommendationsBasedOnMachineLearning = async (req, res, next) => {
+  try {
+  const likedSongsDict = {
+    "Linkin Park": "In the End",
+    "Drake": "One Dance",
+    "Lady Gaga": "Judas",
+    "The Weeknd": "Starboy",
+  };
+
+  // Write the liked songs to a JSON file
+  const filePath = "C:/Users/User/Desktop/USETHISBackend/Backend/machine-learning/input.json";
+  fs.writeFileSync(filePath, JSON.stringify(likedSongsDict));
+
+  const runPythonScript = () => {
+    return new Promise((resolve, reject) => {
+      const pythonProcess = spawn("python", ["../machine-learning/machine-learning.py"]);
+
+      pythonProcess.on("close", (code) => {
+        if (code !== 0) {
+          reject(new Error(`Python script exited with code ${code}`));
+          return;
+        }
+
+        // Read the output CSV file
+        const output = fs.readFileSync("output.csv", "utf8");
+        resolve(output);
+      });
+    });
+  };
+
+  runPythonScript()
+    .then((output) => {
+      console.log("Recommended Songs:", output);
+
+      return res.status(200).json({
+        songs: output,
+        success: true,
+        length: output.length,
+      });
+    })
+    .catch((error) => {
+      return res.status(400).json({
+        message: error.message,
+        success: false,
+      });
+    });
+    
   } catch (err) {
     return res.status(400).json({
       message: err.message,
