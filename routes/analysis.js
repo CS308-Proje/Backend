@@ -37,5 +37,17 @@ router.post(
   analysisController.mobileAnalysisBasedOnArtistsSongsCount
 );
 
+router.get(
+  "/average-rating",
+  isAuth.protect,
+  analysisController.averageRatingForMonth
+);
+
+router.get(
+  "/mobile-average-rating",
+  isAuth.protect,
+  analysisController.mobileAverageRatingForMonth
+);
+
 
 module.exports = router;
