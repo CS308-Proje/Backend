@@ -23,4 +23,19 @@ router.post(
   analysisController.analysisBasedOnArtistsSongsCount
 );
 
+
+router.post(
+  "/mobile-artist-average-analysis",
+  isAuth.protect,
+  analysisController.mobileAnalysisBasedOnArtistSongs
+);
+
+
+router.post(
+  "/mobile-artist-songs-count-analysis",
+  isAuth.protect,
+  analysisController.mobileAnalysisBasedOnArtistsSongsCount
+);
+
+
 module.exports = router;
