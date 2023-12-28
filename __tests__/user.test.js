@@ -3,7 +3,7 @@ const request = require('supertest');
 const express = require('express');
 const mongoose = require('mongoose');
 const User = require('../models/User');
-const userController = require('../controllers/user'); // Adjust as per your actual file
+const userController = require('../controllers/user'); 
 
 const app = express();
 app.use(express.json());
@@ -36,9 +36,9 @@ describe('User API', () => {
       .post('/users')
       .send(newUser);
 
-    expect(res.statusCode).toEqual(201); // Adjust status code based on your implementation
+    expect(res.statusCode).toEqual(201); 
     expect(res.body).toHaveProperty('user');
-    // Additional assertions...
+
   });
 
   it('should delete a user', async () => {
@@ -54,7 +54,7 @@ describe('User API', () => {
       .delete(`/users/${user._id}`)
       .send();
 
-    expect(res.statusCode).toEqual(200); // Adjust status code based on your implementation
-    // Additional assertions...
+    expect(res.statusCode).toEqual(200); 
+
   });
 });

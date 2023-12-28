@@ -63,7 +63,7 @@ describe('Authentication API', () => {
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty('token');
-    // Additional assertions...
+
   });
 
   it('should log out a user', async () => {
