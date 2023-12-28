@@ -4,7 +4,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 
 
-
+const Album = require('../models/Album')
+const Artist = require('../models/Artist')
 const Rating = require('../models/Rating');
 const Song = require('../models/Song');
 const User = require('../models/User'); //for authentication
@@ -18,6 +19,8 @@ app.use('/api', ratingRoutes);
 describe('Rating API - Song', () => {
   let existingUserId = '657351376053b2d654f4a849'; // Existing user ID
   let existingSongId = '65736c8f235b0f66a1c41d5e'; // Existing song ID
+  let existingAlbumId = '65736c8c235b0f66a1c41d4e'; // Existing album ID
+  let existingArtistId = '65736bcb40dc3d15ae6ace6e'; // Existing artist ID
   let authToken;
 
   beforeAll(async () => {
@@ -54,6 +57,34 @@ describe('Rating API - Song', () => {
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty('message', 'Song Rated!');
+  });
+
+  it('should successfully rate an album', async () => {
+    const ratingData = {
+      ratingValue: 4,
+    };
+
+    const res = await request(app)
+      .post(`/api/rateAlbum/${existingAlbumId}`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send(ratingData);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty('message', 'Album Rated!');
+  });
+
+  it('should successfully rate an artist', async () => {
+    const ratingData = {
+      ratingValue: 5,
+    };
+
+    const res = await request(app)
+      .post(`/api/rateArtist/${existingArtistId}`)
+      .set('Authorization', `Bearer ${authToken}`)
+      .send(ratingData);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty('message', 'Artist Rated!');
   });
 
 });
