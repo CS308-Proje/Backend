@@ -20,6 +20,12 @@ exports.createInvitation = async (req, res, next) => {
       target_user_id: targetUserId,
     });
 
+    if (user.friends.includes(targetUserId)) {
+      return res
+        .status(400)
+        .json({ message: "You are already friends with this user" });
+    }
+
     if (existingInvitation) {
       return res.status(400).json({ message: "Invitation already exists" });
     }
@@ -94,6 +100,15 @@ exports.updateStatus = async (req, res, next) => {
       }
 
       if (result1 === 1) {
+        const user = await User.findById(userId);
+        const friend = await User.findById(friendId);
+
+        await user.allowFriendRecommendations.push(friendId);
+        await friend.allowFriendRecommendations.push(userId);
+
+        await user.save();
+        await friend.save();
+
         return res
           .status(200)
           .json({ message: "You have accepted the invite" });
@@ -115,7 +130,9 @@ exports.getAllInvitations = async (req, res, next, limitResponse = false) => {
     const user = await User.findById(req.user.id);
     const userId = user.id;
 
-    const invitations = await Invitation.find({ target_user_id: userId });
+    const invitations = await Invitation.find({
+      target_user_id: userId,
+    }).populate("user_id");
     const message = `You have ${invitations.length} pending invitations.`;
     const null_message = "No pending invitations at the time";
 

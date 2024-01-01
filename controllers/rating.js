@@ -79,7 +79,7 @@ exports.rateArtist = async (req, res, next) => {
     const userId = user.id;
 
     const artist = await Artist.findById(artistId);
-    
+
     if (ratingValue < 0 || ratingValue > 5) {
       return res
         .status(400)

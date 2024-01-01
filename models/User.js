@@ -46,9 +46,9 @@ const UserSchema = new mongoose.Schema({
   ],
 
   allowFriendRecommendations: {
-    type: [ObjectId], 
-    default: [] 
-},
+    type: [ObjectId],
+    default: [],
+  },
 
   resetPasswordToken: String,
   resetPasswordExpire: Date,

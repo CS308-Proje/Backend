@@ -86,6 +86,13 @@ exports.removeFriend = async (req, res, next) => {
       (userDoc) => userDoc.toString() !== userId
     );
 
+    user.allowFriendRecommendations = user.allowFriendRecommendations.filter(
+      (id) => !id.equals(friendId)
+    );
+
+    friend.allowFriendRecommendations =
+      friend.allowFriendRecommendations.filter((id) => !id.equals(userId));
+
     await user.save();
     await friend.save();
 

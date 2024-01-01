@@ -1,7 +1,6 @@
 const Rating = require("../models/Rating");
 const Song = require("../models/Song");
 const User = require("../models/User");
-const fs = require("fs");
 const { Parser } = require("json2csv");
 
 exports.dataExport = async (req, res) => {
@@ -48,20 +47,21 @@ exports.dataExport = async (req, res) => {
       fileType = "application/json";
     }
 
-    const filePath = req.body.path;
     const fileName = `exportedData.${format}`;
-    const fileFullPath = `${filePath}/${fileName}`;
 
-    await fs.writeFileSync(fileFullPath, fileData);
-
+    // Set headers separately
     res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
     res.setHeader("Content-Type", fileType);
-
-    return res.sendFile(fileFullPath);
+    return res.status(200).send(fileData);
   } catch (err) {
-    return res.status(400).json({
-      error: err.message,
-      success: false,
-    });
+    if (!res.headersSent) {
+      return res.status(400).json({
+        error: err.message,
+        success: false,
+      });
+    } else {
+      console.error(err);
+      res.end();
+    }
   }
 };
