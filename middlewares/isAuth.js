@@ -10,7 +10,7 @@ exports.protect = async (req, res, next) => {
 
     //token = req.cookies.token;
 
-    if (req.cookies.token) {
+    if (req.cookies && req.cookies.token) {
       token = req.cookies.token;
       const decoded = await jwt.verify(token, process.env.JWT_SECRET);
 
