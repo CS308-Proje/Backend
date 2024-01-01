@@ -25,7 +25,7 @@ exports.protect = async (req, res, next) => {
 
       req.user = await User.findById(decoded.id);
     } else {
-      res.status(400).json({
+      return res.status(400).json({
         message: "There are problems with token.",
         success: false,
       });
@@ -33,7 +33,7 @@ exports.protect = async (req, res, next) => {
 
     next();
   } catch (err) {
-    res.status(400).json({
+    return res.status(400).json({
       message: err.message,
       success: false,
     });
