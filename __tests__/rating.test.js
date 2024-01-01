@@ -85,7 +85,7 @@ describe('Rating API - Song', () => {
       
     });
     
-    console.log(res.body);
+  
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty('message', 'Album Rated!');
   });

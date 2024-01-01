@@ -3,19 +3,19 @@ const express = require("express");
 const request = require("supertest");
 const mongoose = require("mongoose");
 const songController = require("../controllers/song");
+const {protect} = require('../middlewares/isAuth');
 const authenticationController = require('../controllers/authentication');
 const app = express();
 
 app.use(express.json());
 app.post('/login', authenticationController.login);
-app.post('/songs', songController.addSong);
-app.put('/songs/:id', songController.updateSong);
-app.delete('/songs/:id', songController.deleteSong);
+app.post('/add-song-not-from-spotify', protect ,songController.addSongThatIsNotFromSpotifyAPI);
+app.put('/songs/:id', protect ,songController.updateSong);
+app.delete('/songs/:id', protect ,songController.deleteSong);
 
 describe('Song API', () => {
-  let token;
-  const testSongId = '65736c8e235b0f66a1c41d55'; // id of the song we want to test
-
+  let testSongId; // id of the song we want to test
+  let authToken;
   beforeAll(async () => {
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
@@ -24,12 +24,12 @@ describe('Song API', () => {
 
     // Log in to get a token
     const loginRes = await request(app).post('/login').send({
-      email: 'testuser1703245264054@example.com',
+      email: 'testuser1702056245215@example.com',
       password: 'password123',
     });
 
     expect(loginRes.statusCode).toEqual(200);
-    token = loginRes.body.token;
+    authToken = loginRes.body.token;
   });
 
   afterAll(async () => {
@@ -45,9 +45,11 @@ describe('Song API', () => {
     };
 
     const res = await request(app)
-      .post('/songs')
-      .set('Authorization', `Bearer ${token}`)
+      .post('/add-song-not-from-spotify')
+      .set('Authorization', `Bearer ${authToken}`)
       .send(songData);
+
+    testSongId = res.body.song._id;
 
     expect(res.statusCode).toEqual(201);
     expect(res.body).toHaveProperty('song');
@@ -61,7 +63,7 @@ describe('Song API', () => {
 
     const res = await request(app)
       .put(`/songs/${testSongId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Authorization', `Bearer ${authToken}`)
       .send(updateSongData);
 
     expect(res.statusCode).toEqual(200);
@@ -71,7 +73,7 @@ describe('Song API', () => {
   it('should delete a song', async () => {
     const res = await request(app)
       .delete(`/songs/${testSongId}`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Authorization', `Bearer ${authToken}`);
 
     expect(res.statusCode).toEqual(200);
   });

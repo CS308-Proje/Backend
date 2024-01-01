@@ -99,7 +99,7 @@ describe('Authentication API', () => {
   
     // Check what emails have been "sent"
     const sentEmails = nodemailerMock.mock.getSentMail();
-    console.log(sentEmails);  
+    
   
     const resetEmail = sentEmails.find(email => email.to === randomEmail);
     resetToken = extractTokenFromEmail(resetEmail); 

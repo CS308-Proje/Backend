@@ -4,20 +4,37 @@ const express = require('express');
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const userController = require('../controllers/user'); 
+const {protect, authorize} = require('../middlewares/isAuth');
+const { login } = require('../controllers/authentication');
 
 const app = express();
 app.use(express.json());
 
 // Define your user routes
-app.post('/users', userController.addUser);
-app.delete('/users/:id', userController.deleteUser);
+app.post('/login', login);
+app.post('/users', protect, authorize("admin") ,userController.addUser);
+app.delete('/users/:id', protect , authorize("admin") ,userController.deleteUser);
 
 describe('User API', () => {
+  let authToken;
+  let userIdtoDelete;
   beforeAll(async () => {
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
-      useUnifiedTopology: true,
+      //useUnifiedTopology: true,
     });
+
+
+    const loginRes = await request(app)
+      .post('/login')
+      .send({
+        email: 'testuser1702056245215@example.com', //existing user form database
+        password: 'password123', 
+      });
+
+    
+    expect(loginRes.statusCode).toEqual(200);
+    authToken = loginRes.body.token;
   });
 
   afterAll(async () => {
@@ -32,9 +49,17 @@ describe('User API', () => {
       password: 'password123',
     };
 
+    userIdtoDelete = newUser._id;
+
     const res = await request(app)
       .post('/users')
+      .set('Authorization', `Bearer ${authToken}`)
       .send(newUser);
+
+
+      
+
+      userIdtoDelete = res.body.user._id;
 
     expect(res.statusCode).toEqual(201); 
     expect(res.body).toHaveProperty('user');
@@ -42,17 +67,11 @@ describe('User API', () => {
   });
 
   it('should delete a user', async () => {
-    // Create a user to delete
-    const user = await User.create({
-      name: 'User To Delete',
-      username: 'usertodelete',
-      email: 'deleteuser@example.com',
-      password: 'password123',
-    });
 
     const res = await request(app)
-      .delete(`/users/${user._id}`)
-      .send();
+      .delete(`/users/${userIdtoDelete}`)
+      .set('Authorization', `Bearer ${authToken}`)
+      
 
     expect(res.statusCode).toEqual(200); 
 
