@@ -715,12 +715,27 @@ exports.getRecommendationsBasedOnMachineLearning = async (req, res, next) => {
       accessToken: token,
     });
 
-    const likedSongsDict = {
-      "Linkin Park": "In the End",
-      Drake: "One Dance",
-      "Lady Gaga": "Judas",
-      "The Weeknd": "Starboy",
-    };
+    const highRatedSongs = await Song.find({
+      userId: userId,
+      ratingValue: { $gte: 3 },
+    }).limit(4);
+
+    if (!highRatedSongs || highRatedSongs.length === 0) {
+      return res.status(200).json({
+        message:
+          "No songs is rated high enouth to get recommendation. You need to rate at least one song using a rating value greater or equal to 3.",
+        success: false,
+      });
+    }
+
+    const likedSongsDict = {};
+
+    for (let index = 0; index < highRatedSongs.length; index++) {
+      likedSongsDict[highRatedSongs[index].mainArtistName] =
+        highRatedSongs[index].songName;
+    }
+
+    console.log(likedSongsDict);
 
     const pythonScriptPath = path.resolve(
       __dirname,
@@ -748,11 +763,18 @@ exports.getRecommendationsBasedOnMachineLearning = async (req, res, next) => {
 
         pythonProcess.on("close", (code) => {
           if (code !== 0) {
+            if (code === 1) {
+              return res.status(400).json({
+                message: "No song is found appropriate for model. Sorry :(.",
+                success: false,
+              });
+            }
             console.error(`Python script exited with code ${code}`);
             console.error(`Python script error: ${stderr}`);
             reject(new Error(`Python script exited with code ${code}`));
             return;
           }
+
           const output = fs.readFileSync("output.json", "utf8");
           // Directly use the output from stdout as recommendations
           resolve(output);
