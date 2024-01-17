@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const express = require("express");
 const Song = require("../models/Song");
+const path = require("path");
 const User = require("../models/User");
 const Album = require("../models/Album");
 const Artist = require("../models/Artist");
@@ -701,54 +702,94 @@ exports.getRecommendationsBasedOnFriendActivity = async (
   }
 };
 
-
 exports.getRecommendationsBasedOnMachineLearning = async (req, res, next) => {
   try {
-  const likedSongsDict = {
-    "Linkin Park": "In the End",
-    "Drake": "One Dance",
-    "Lady Gaga": "Judas",
-    "The Weeknd": "Starboy",
-  };
+    const user = await User.findById(req.user.id);
+    const userId = user.id;
 
-  // Write the liked songs to a JSON file
-  const filePath = "C:/Users/User/Desktop/USETHISBackend/Backend/machine-learning/input.json";
-  fs.writeFileSync(filePath, JSON.stringify(likedSongsDict));
+    const token = await getSpotifyAccessToken();
 
-  const runPythonScript = () => {
-    return new Promise((resolve, reject) => {
-      const pythonProcess = spawn("python", ["../machine-learning/machine-learning.py"]);
-
-      pythonProcess.on("close", (code) => {
-        if (code !== 0) {
-          reject(new Error(`Python script exited with code ${code}`));
-          return;
-        }
-
-        // Read the output CSV file
-        const output = fs.readFileSync("output.csv", "utf8");
-        resolve(output);
-      });
+    const spotifyApi = new SpotifyWebApi({
+      clientId: process.env.CLIENT_ID,
+      clientSecret: process.env.CLIENT_SECRET,
+      accessToken: token,
     });
-  };
 
-  runPythonScript()
-    .then((output) => {
-      console.log("Recommended Songs:", output);
+    const likedSongsDict = {
+      "Linkin Park": "In the End",
+      Drake: "One Dance",
+      "Lady Gaga": "Judas",
+      "The Weeknd": "Starboy",
+    };
 
-      return res.status(200).json({
-        songs: output,
-        success: true,
-        length: output.length,
+    const pythonScriptPath = path.resolve(
+      __dirname,
+      "../machine-learning/machine-learning.py"
+    );
+
+    const filePath =
+      "C:/Users/User/Desktop/ensonbackend/Backend/machine-learning/input.json";
+    fs.writeFileSync(filePath, JSON.stringify(likedSongsDict));
+
+    const runPythonScript = () => {
+      return new Promise((resolve, reject) => {
+        const pythonProcess = spawn("python", [pythonScriptPath]);
+
+        let stdout = "";
+        let stderr = "";
+
+        pythonProcess.stdout.on("data", (data) => {
+          stdout += data.toString();
+        });
+
+        pythonProcess.stderr.on("data", (data) => {
+          stderr += data.toString();
+        });
+
+        pythonProcess.on("close", (code) => {
+          if (code !== 0) {
+            console.error(`Python script exited with code ${code}`);
+            console.error(`Python script error: ${stderr}`);
+            reject(new Error(`Python script exited with code ${code}`));
+            return;
+          }
+          const output = fs.readFileSync("output.json", "utf8");
+          // Directly use the output from stdout as recommendations
+          resolve(output);
+        });
       });
-    })
-    .catch((error) => {
-      return res.status(400).json({
-        message: error.message,
-        success: false,
-      });
+    };
+
+    var output = await runPythonScript();
+
+    output = JSON.parse(output);
+    let songs = [];
+
+    for (let index = 0; index < output.length; index++) {
+      const id = output[index].id;
+
+      const songData = await spotifyApi.getTrack(id);
+
+      songsInfo = {
+        songName: songData.body.name,
+        mainArtistName: songData.body.artists[0].name,
+        featuringArtistNames:
+          songData.body.artists.slice(1).map((artist) => artist.name) || [],
+
+        albumName: songData.body.album.name,
+        albumImg: songData.body.album.images[0].url,
+        popularity: songData.body.popularity,
+        release_date: songData.body.album.release_date,
+        duration_ms: songData.body.duration_ms,
+        artistId: songData.body.artists[0].id,
+      };
+      songs.push(songsInfo);
+    }
+    return res.status(200).json({
+      songs: songs, // Parse the JSON output
+      success: true,
+      length: songs.length,
     });
-    
   } catch (err) {
     return res.status(400).json({
       message: err.message,

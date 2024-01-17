@@ -335,7 +335,7 @@ exports.analysisBasedOnArtistSongs = async (req, res, next) => {
 
       averageRatings.push(averageRating);
     }
-  
+
     return res.status(200).json({
       success: true,
       data: averageRatings,
@@ -414,8 +414,6 @@ exports.analysisBasedOnArtistsSongsCount = async (req, res, next) => {
   }
 };
 
-
-
 exports.averageRatingForMonth = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -423,29 +421,29 @@ exports.averageRatingForMonth = async (req, res, next) => {
 
     const ratings = await Rating.find({
       userId: userId,
-      createdAt: { $gte: new Date(new Date().setDate(new Date().getDate() - 30)) },
+      createdAt: {
+        $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+      },
     });
-    
+
     if (!ratings || ratings.length === 0) {
       return res.status(400).json({
-        error: 'No ratings found for the specified date range.',
+        error: "No ratings found for the specified date range.",
         success: false,
       });
-    } 
+    }
 
     const ratingsByDay = {};
-
 
     for (let index = 0; index < ratings.length; index++) {
       const rating = ratings[index];
 
-      const day = rating.createdAt.toISOString().split('T')[0];
+      const day = rating.createdAt.toISOString().split("T")[0];
 
       if (!ratingsByDay[day]) {
         ratingsByDay[day] = [];
       }
       ratingsByDay[day].push(rating.ratingValue);
-      
     }
 
     const labels = Object.keys(ratingsByDay);
@@ -454,28 +452,19 @@ exports.averageRatingForMonth = async (req, res, next) => {
       return total / ratingsByDay[day].length;
     });
 
-
-
     return res.status(200).json({
       success: true,
       data: averages,
     });
-
-
   } catch (err) {
     return res.status(400).json({
       message: err.message,
       success: false,
-    
     });
   }
 };
 
-
-
-
 //* Mobile Routes
-
 
 exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
   try {
@@ -543,7 +532,7 @@ exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
 
       averageRatings.push(averageRating);
     }
-    
+
     const chartDataString = JSON.stringify({
       labels: artistArray,
       datasets: [
@@ -572,8 +561,6 @@ exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
         },
       ],
     });
-    
-    
 
     const htmlContent = `
     <html>
@@ -594,7 +581,7 @@ exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
     </html>
   `;
 
-     const img = await nodeHtmlToImage({
+    const img = await nodeHtmlToImage({
       html: htmlContent,
     });
 
@@ -602,7 +589,7 @@ exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
     base64Image = "data:image/png;base64," + base64Image;
 
     console.log(averageRatings);
-    
+
     return res.status(200).json({
       success: true,
       base64Image: base64Image,
@@ -669,7 +656,6 @@ exports.mobileAnalysisBasedOnArtistsSongsCount = async (req, res, next) => {
       songsCount.push(songs.length);
     }
 
-    
     const chartDataString = JSON.stringify({
       labels: artistArray,
       datasets: [
@@ -698,8 +684,7 @@ exports.mobileAnalysisBasedOnArtistsSongsCount = async (req, res, next) => {
         },
       ],
     });
-    
-    
+
     const htmlContent = `
     <html>
       <head>
@@ -722,9 +707,8 @@ exports.mobileAnalysisBasedOnArtistsSongsCount = async (req, res, next) => {
       </body>
     </html>
   `;
-  
 
-     const img = await nodeHtmlToImage({
+    const img = await nodeHtmlToImage({
       html: htmlContent,
     });
 
@@ -743,8 +727,6 @@ exports.mobileAnalysisBasedOnArtistsSongsCount = async (req, res, next) => {
   }
 };
 
-
-
 exports.mobileAverageRatingForMonth = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -752,29 +734,29 @@ exports.mobileAverageRatingForMonth = async (req, res, next) => {
 
     const ratings = await Rating.find({
       userId: userId,
-      createdAt: { $gte: new Date(new Date().setDate(new Date().getDate() - 30)) },
+      createdAt: {
+        $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+      },
     });
-    
+
     if (!ratings || ratings.length === 0) {
       return res.status(400).json({
-        error: 'No ratings found for the specified date range.',
+        error: "No ratings found for the specified date range.",
         success: false,
       });
-    } 
+    }
 
     const ratingsByDay = {};
-
 
     for (let index = 0; index < ratings.length; index++) {
       const rating = ratings[index];
 
-      const day = rating.createdAt.toISOString().split('T')[0];
+      const day = rating.createdAt.toISOString().split("T")[0];
 
       if (!ratingsByDay[day]) {
         ratingsByDay[day] = [];
       }
       ratingsByDay[day].push(rating.ratingValue);
-      
     }
 
     const labels = Object.keys(ratingsByDay);
@@ -787,9 +769,9 @@ exports.mobileAverageRatingForMonth = async (req, res, next) => {
       labels: labels,
       datasets: [
         {
-          label: 'Average Rating',
-          backgroundColor: 'rgba(75,192,192,0.4)',
-          borderColor: 'rgba(75,192,192,1)',
+          label: "Average Rating",
+          backgroundColor: "rgba(75,192,192,0.4)",
+          borderColor: "rgba(75,192,192,1)",
           borderWidth: 1,
           pointRadius: 5,
           pointHoverRadius: 8,
@@ -821,20 +803,17 @@ exports.mobileAverageRatingForMonth = async (req, res, next) => {
       html: htmlContent,
     });
 
-    const base64Image = img.toString('base64');
-    const base64ImageUrl = 'data:image/png;base64,' + base64Image;
+    const base64Image = img.toString("base64");
+    const base64ImageUrl = "data:image/png;base64," + base64Image;
 
     return res.status(200).json({
       success: true,
       base64Image: base64ImageUrl,
     });
-
-
   } catch (err) {
     return res.status(400).json({
       message: err.message,
       success: false,
-    
     });
   }
 };
