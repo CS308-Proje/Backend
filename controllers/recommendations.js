@@ -514,7 +514,7 @@ exports.getRecommendationsBasedOnTemporalValues = async (
         const artistName = song.mainArtistName;
         const spotifyAPIdata = await spotifyApi.searchTracks(
           `artist:${artistName}`,
-          { limit: 5 }
+          { limit: 3 }
         );
 
         if (spotifyAPIdata.body.tracks.items.length > 0) {
@@ -575,7 +575,8 @@ exports.getRecommendationsBasedOnTemporalValues = async (
         message = "You do not have temporal recommendations yet.";
         return message;
       } else {
-        message = `You have ${recommendedSongs.length} new recommendations based on temporal values.`;
+        // message = `You have ${recommendedSongs.length} new recommendations based on temporal values.`;
+        message = `You have a new recommendations based on temporal values.`;
         return message;
       }
     }
@@ -583,7 +584,6 @@ exports.getRecommendationsBasedOnTemporalValues = async (
     return res.status(200).json({
       songs: recommendedSong,
       success: true,
-      length: recommendedSongs.length,
     });
   } catch (err) {
     return res.status(400).json({
@@ -611,7 +611,12 @@ exports.getRecommendationsBasedOnFriendActivity = async (
     const friends = user.allowFriendRecommendations;
 
     if (friends.length === 0) {
-      return res.status(200).json({
+      if (limitResponse) {
+        const message = "You do not have any friends in this account.";
+        return message;
+      }
+
+      return res.status(400).json({
         message: "You do not have any friends in this account.",
         success: true,
       });
