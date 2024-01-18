@@ -4,7 +4,7 @@ const Song = require("../models/Song");
 const Album = require("../models/Album");
 const Artist = require("../models/Artist");
 const Rating = require("../models/Rating");
-const puppeteer = require("puppeteer");
+
 const nodeHtmlToImage = require("node-html-to-image");
 const Image = require("../models/Image");
 
@@ -19,6 +19,16 @@ exports.createAnalysisBasedOnSongs = async (req, res, next) => {
     var start = req.query.start;
 
     var end = req.query.end;
+
+    const today = new Date();
+    const formattedToday = today.toISOString().split("T")[0];
+
+    if (end > formattedToday) {
+      return res.status(400).json({
+        error: "End date cannot be greater than today's date.",
+        success: false,
+      });
+    }
 
     if (type === null) {
       return res.status(400).json({
@@ -279,6 +289,16 @@ exports.analysisBasedOnArtistSongs = async (req, res, next) => {
     const start = req.query.start;
     const end = req.query.end;
 
+    const today = new Date();
+    const formattedToday = today.toISOString().split("T")[0];
+
+    if (end > formattedToday) {
+      return res.status(400).json({
+        error: "End date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
     let averageRatings = [];
 
     var songsOfAnArtist = [];
@@ -358,6 +378,16 @@ exports.analysisBasedOnArtistsSongsCount = async (req, res, next) => {
     const start = req.query.start;
 
     const end = req.query.end;
+
+    const today = new Date();
+    const formattedToday = today.toISOString().split("T")[0];
+
+    if (end > formattedToday) {
+      return res.status(400).json({
+        error: "End date cannot be greater than today's date.",
+        success: false,
+      });
+    }
 
     let songs = [];
     let songsCount = [];
@@ -475,6 +505,16 @@ exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
 
     const start = req.query.start;
     const end = req.query.end;
+
+    const today = new Date();
+    const formattedToday = today.toISOString().split("T")[0];
+
+    if (end > formattedToday) {
+      return res.status(400).json({
+        error: "End date cannot be greater than today's date.",
+        success: false,
+      });
+    }
 
     let averageRatings = [];
 
@@ -612,6 +652,16 @@ exports.mobileAnalysisBasedOnArtistsSongsCount = async (req, res, next) => {
     const start = req.query.start;
 
     const end = req.query.end;
+
+    const today = new Date();
+    const formattedToday = today.toISOString().split("T")[0];
+
+    if (end > formattedToday) {
+      return res.status(400).json({
+        error: "End date cannot be greater than today's date.",
+        success: false,
+      });
+    }
 
     let songs = [];
     let songsCount = [];
