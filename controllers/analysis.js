@@ -30,7 +30,9 @@ exports.createAnalysisBasedOnSongs = async (req, res, next) => {
       });
     }
 
-    if (type === null) {
+
+    if (type === null || type === undefined || type === "") {
+
       return res.status(400).json({
         error: "Please enter a type. Type can be song, album or artist.",
         success: false,
@@ -310,29 +312,50 @@ exports.analysisBasedOnArtistSongs = async (req, res, next) => {
       });
     }
 
+    for (let index = 0; index < artistArray.length; index++) {
+      const element = artistArray[index];
+
+      if (
+        (await Artist.findOne({ userId: userId, artistName: element })) ===
+          null ||
+        element !==
+          (await Artist.findOne({ userId: userId, artistName: element }))
+            .artistName
+      ) {
+        return res.status(400).json({
+          error: `Artist named ${element} does not exist.`,
+          success: false,
+        });
+      }
+    }
+
     for (let i = 0; i < artistArray.length; i++) {
       if (start && end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
           createdAt: { $gte: start, $lte: end },
+          ratingValue: { $ne: null },
         });
       } else if (!start && end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
           createdAt: { $lte: end },
+          ratingValue: { $ne: null },
         });
       } else if (start && !end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
           createdAt: { $gte: start },
+          ratingValue: { $ne: null },
         });
       } else if (!start && !end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
+          ratingValue: { $ne: null },
         });
       }
 
@@ -392,11 +415,28 @@ exports.analysisBasedOnArtistsSongsCount = async (req, res, next) => {
     let songs = [];
     let songsCount = [];
 
-    if (!artistArray) {
+    if (artistArray === null || artistArray.length === 0) {
       return res.status(400).json({
         error: "Please enter an artist name or names.",
         success: false,
       });
+    }
+
+    for (let index = 0; index < artistArray.length; index++) {
+      const element = artistArray[index];
+
+      if (
+        (await Artist.findOne({ userId: userId, artistName: element })) ===
+          null ||
+        element !==
+          (await Artist.findOne({ userId: userId, artistName: element }))
+            .artistName
+      ) {
+        return res.status(400).json({
+          error: `Artist named ${element} does not exist.`,
+          success: false,
+        });
+      }
     }
 
     for (let i = 0; i < artistArray.length; i++) {
@@ -449,10 +489,17 @@ exports.averageRatingForMonth = async (req, res, next) => {
     const user = await User.findById(req.user.id);
     const userId = user.id;
 
+    const today = new Date();
+    const lastMonthStart = new Date(today);
+
+    lastMonthStart.setMonth(today.getMonth() - 1); // Set to the first day of the last month
+
     const ratings = await Rating.find({
       userId: userId,
       createdAt: {
-        $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+
+        $gte: lastMonthStart,
+
       },
     });
 
@@ -479,7 +526,8 @@ exports.averageRatingForMonth = async (req, res, next) => {
     const labels = Object.keys(ratingsByDay);
     const averages = labels.map((day) => {
       const total = ratingsByDay[day].reduce((acc, val) => acc + val, 0);
-      return total / ratingsByDay[day].length;
+      const average = total / ratingsByDay[day].length;
+      return { date: day, average: average };
     });
 
     return res.status(200).json({
@@ -527,29 +575,50 @@ exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
       });
     }
 
+    for (let index = 0; index < artistArray.length; index++) {
+      const element = artistArray[index];
+
+      if (
+        (await Artist.findOne({ userId: userId, artistName: element })) ===
+          null ||
+        element !==
+          (await Artist.findOne({ userId: userId, artistName: element }))
+            .artistName
+      ) {
+        return res.status(400).json({
+          error: `Artist named ${element} does not exist.`,
+          success: false,
+        });
+      }
+    }
+
     for (let i = 0; i < artistArray.length; i++) {
       if (start && end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
           createdAt: { $gte: start, $lte: end },
+          ratingValue: { $ne: null },
         });
       } else if (!start && end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
           createdAt: { $lte: end },
+          ratingValue: { $ne: null },
         });
       } else if (start && !end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
           createdAt: { $gte: start },
+          ratingValue: { $ne: null },
         });
       } else if (!start && !end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
+          ratingValue: { $ne: null },
         });
       }
 
@@ -666,11 +735,28 @@ exports.mobileAnalysisBasedOnArtistsSongsCount = async (req, res, next) => {
     let songs = [];
     let songsCount = [];
 
-    if (!artistArray) {
+    if (artistArray === null || artistArray.length === 0) {
       return res.status(400).json({
         error: "Please enter an artist name or names.",
         success: false,
       });
+    }
+
+    for (let index = 0; index < artistArray.length; index++) {
+      const element = artistArray[index];
+
+      if (
+        (await Artist.findOne({ userId: userId, artistName: element })) ===
+          null ||
+        element !==
+          (await Artist.findOne({ userId: userId, artistName: element }))
+            .artistName
+      ) {
+        return res.status(400).json({
+          error: `Artist named ${element} does not exist.`,
+          success: false,
+        });
+      }
     }
 
     for (let i = 0; i < artistArray.length; i++) {
