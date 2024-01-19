@@ -153,6 +153,11 @@ describe('Invitations API', () => {
             .send({ status: "accepted" });
 
         expect(updateRes.statusCode).toEqual(200); 
+
+        // Step 4: Check if firend added to user's friend list
+        const updatedUser = await User.findById(userId);
+        expect(updatedUser.friends).toContainEqual(friendId);
+        //console.log("Updated user: ", updatedUser);
     
 
     });
