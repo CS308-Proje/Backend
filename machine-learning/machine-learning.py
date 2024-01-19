@@ -5,13 +5,24 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.metrics.pairwise import cosine_similarity
+import os  # Import the os module
 
-with open('input.json', 'r') as file:
+# Get the absolute path to the directory containing this script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Specify the absolute path to the input.json file
+input_json_path = os.path.join(script_dir, 'input.json')
+
+csv_path = os.path.join(script_dir, 'Spotify_Song_Attributes.csv')
+
+with open(input_json_path, 'r') as file:
     liked_songs_dict = json.load(file)
 
 
+
+
 # Load and preprocess data
-df = pd.read_csv("Spotify_Song_Attributes.csv")
+df = pd.read_csv(csv_path)
 df.drop_duplicates(inplace=True)
 
 # Feature Engineering
@@ -63,6 +74,12 @@ for cluster in liked_clusters:
         song = df.iloc[song_idx][['artistName', 'trackName']].tolist()
         if song not in liked_songs_dict.values():
             all_recommendations.append(song)
+            
+            
+            if len(all_recommendations) == 3:
+                break
+    if len(all_recommendations) == 3:
+        break
 
 unique_recommendations = []
 for rec in all_recommendations:
@@ -74,5 +91,6 @@ final_df = pd.DataFrame()
 for artist, song in unique_recommendations:
     final_df = pd.concat([final_df, df[(df["artistName"] == artist) & (df["trackName"] == song)]], ignore_index=True)
 
-
-final_df[["trackName","artistName","id","uri","track_href","analysis_url"]].to_json()
+#print(final_df[["trackName","artistName","id","uri","track_href","analysis_url"]].to_json())
+#final_df[["trackName","artistName","id","uri","track_href","analysis_url"]].to_json()
+final_df[["id"]].to_json("output.json", orient="records")
