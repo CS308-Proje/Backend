@@ -30,9 +30,7 @@ exports.createAnalysisBasedOnSongs = async (req, res, next) => {
       });
     }
 
-
     if (type === null || type === undefined || type === "") {
-
       return res.status(400).json({
         error: "Please enter a type. Type can be song, album or artist.",
         success: false,
@@ -497,9 +495,7 @@ exports.averageRatingForMonth = async (req, res, next) => {
     const ratings = await Rating.find({
       userId: userId,
       createdAt: {
-
         $gte: lastMonthStart,
-
       },
     });
 
