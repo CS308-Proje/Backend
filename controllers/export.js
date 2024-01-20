@@ -11,7 +11,7 @@ exports.dataExport = async (req, res) => {
     const artistName = req.query.artist;
     const rate = req.query.rating;
     let format = req.query.format;
-    const filePath = req.body.path;
+    //const filePath = req.body.path;
 
     if (format !== "csv") {
       format = "json";
@@ -51,9 +51,9 @@ exports.dataExport = async (req, res) => {
 
     const fileName = `exportedData.${format}`;
 
-    const fileFullPath = `${filePath}/${fileName}`;
+    //const fileFullPath = `${filePath}/${fileName}`;
 
-    fs.writeFileSync(fileFullPath, fileData);
+    //fs.writeFileSync(fileFullPath, fileData);
 
     // Set headers separately
     res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);

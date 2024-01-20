@@ -23,6 +23,20 @@ exports.createAnalysisBasedOnSongs = async (req, res, next) => {
     const today = new Date();
     const formattedToday = today.toISOString().split("T")[0];
 
+    if (start > formattedToday) {
+      return res.status(400).json({
+        error: "Start date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
+    if (start >= end) {
+      return res.status(400).json({
+        error: "Start date cannot be greater or equal to end date.",
+        success: false,
+      });
+    }
+
     if (end > formattedToday) {
       return res.status(400).json({
         error: "End date cannot be greater than today's date.",
@@ -292,6 +306,20 @@ exports.analysisBasedOnArtistSongs = async (req, res, next) => {
     const today = new Date();
     const formattedToday = today.toISOString().split("T")[0];
 
+    if (start > formattedToday) {
+      return res.status(400).json({
+        error: "Start date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
+    if (start >= end) {
+      return res.status(400).json({
+        error: "Start date cannot be greater or equal to end date.",
+        success: false,
+      });
+    }
+
     if (end > formattedToday) {
       return res.status(400).json({
         error: "End date cannot be greater than today's date.",
@@ -402,6 +430,20 @@ exports.analysisBasedOnArtistsSongsCount = async (req, res, next) => {
 
     const today = new Date();
     const formattedToday = today.toISOString().split("T")[0];
+
+    if (start > formattedToday) {
+      return res.status(400).json({
+        error: "Start date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
+    if (start >= end) {
+      return res.status(400).json({
+        error: "Start date cannot be greater or equal to end date.",
+        success: false,
+      });
+    }
 
     if (end > formattedToday) {
       return res.status(400).json({
@@ -552,6 +594,20 @@ exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
 
     const today = new Date();
     const formattedToday = today.toISOString().split("T")[0];
+
+    if (start > formattedToday) {
+      return res.status(400).json({
+        error: "Start date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
+    if (start >= end) {
+      return res.status(400).json({
+        error: "Start date cannot be greater or equal to end date.",
+        success: false,
+      });
+    }
 
     if (end > formattedToday) {
       return res.status(400).json({
@@ -720,6 +776,20 @@ exports.mobileAnalysisBasedOnArtistsSongsCount = async (req, res, next) => {
 
     const today = new Date();
     const formattedToday = today.toISOString().split("T")[0];
+
+    if (start > formattedToday) {
+      return res.status(400).json({
+        error: "Start date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
+    if (start >= end) {
+      return res.status(400).json({
+        error: "Start date cannot be greater or equal to end date.",
+        success: false,
+      });
+    }
 
     if (end > formattedToday) {
       return res.status(400).json({

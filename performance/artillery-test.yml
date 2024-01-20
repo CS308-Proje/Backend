@@ -1,0 +1,63 @@
+config:
+  target: "http://localhost:5001"
+  phases:
+    - duration: 30
+      arrivalRate: 5
+    - duration: 30
+      arrivalRate: 10
+
+scenarios:
+  - flow:
+      - post:
+          url: "/auth/login"
+          json:
+            email: "testuser1702056245215@example.com"
+            password: "password123"
+          capture:
+            json: "$.token"
+            as: "token"
+
+      - get:
+          url: "/auth/me"
+          headers:
+            Authorization: "Bearer {{ token }}"
+
+      - get:
+          url: "/songs"
+          headers:
+            Authorization: "Bearer {{ token }}"
+
+      - get:
+          url: "/albums"
+          headers:
+            Authorization: "Bearer {{ token }}"
+
+      - get:
+          url: "/artists"
+          headers:
+            Authorization: "Bearer {{ token }}"
+
+      - get:
+          url: "/users"
+          headers:
+            Authorization: "Bearer {{ token }}"
+
+      - post:
+          url: "/add-song-not-from-spotify"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          json:
+            songName: "test song"
+            mainArtistName: "test artist"
+            albumName: "test album"
+            featuringArtistNames: ["test artist 2", "test artist 3"]
+            release_date: "2021-01-01"
+
+          capture:
+            json: "$._id"
+            as: "id"
+
+      - delete:
+          url: "/songs/{{ id }}"
+          headers:
+            Authorization: "Bearer {{ token }}"
