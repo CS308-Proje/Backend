@@ -43,6 +43,8 @@ describe("Album API", () => {
   });
 
   afterAll(async () => {
+    await Song.deleteMany({ _id: testSongId });
+    await Artist.deleteMany({ _id: testArtistId });
     await mongoose.connection.close();
   });
 
@@ -112,8 +114,5 @@ describe("Album API", () => {
     expect(res.statusCode).toEqual(200);
     expect(res.body.success).toEqual(true);
     expect(res.body.message).toEqual("Album is deleted.");
-
-    await Song.deleteMany({ _id: testSongId });
-    await Artist.deleteMany({ _id: testArtistId });
   });
 });

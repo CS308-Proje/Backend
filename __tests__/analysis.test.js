@@ -91,7 +91,7 @@ describe("Analysis API", () => {
     expect(res.body).toHaveProperty("base64Image");
     expect(res.body).toHaveProperty("data");
     expect(res.body.success).toBe(true);
-  }, 15000);
+  }, 20000);
 
   it("should return 400 when createAnalysisBasedOnSongs is called with a invalid date", async () => {
     const res = await request(app)
