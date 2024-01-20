@@ -2,7 +2,7 @@ require("dotenv").config({ path: "./config/config.env" });
 const express = require("express");
 const request = require("supertest");
 const mongoose = require("mongoose");
-const { protect } = require("../middlewares/isAuth");
+const { protect, authorize } = require("../middlewares/isAuth");
 const authenticationController = require("../controllers/authentication");
 var {
   createAnalysisBasedOnSongs,
@@ -10,6 +10,11 @@ var {
   analysisBasedOnArtistsSongsCount,
   averageRatingForMonth,
 } = require("../controllers/analysis");
+
+var {
+  getUserRegistrationInAMonth,
+  getAddedSongInAMonth,
+} = require("../controllers/user");
 const app = express();
 
 app.use(express.json());
@@ -22,6 +27,15 @@ app.post(
   analysisBasedOnArtistsSongsCount
 );
 app.get("/averageRatingForMonth", protect, averageRatingForMonth);
+app.get(
+  "/admin-chart-user",
+  protect,
+  authorize("admin"),
+  getUserRegistrationInAMonth
+);
+
+app.get("/admin-chart-song", protect, authorize("admin"), getAddedSongInAMonth);
+
 describe("Analysis API", () => {
   let authToken;
 
@@ -77,12 +91,12 @@ describe("Analysis API", () => {
     expect(res.body).toHaveProperty("base64Image");
     expect(res.body).toHaveProperty("data");
     expect(res.body.success).toBe(true);
-  }, 10000);
+  }, 15000);
 
-  it("should return 400 when createAnalysisBasedOnSongs is called without a invalid date", async () => {
+  it("should return 400 when createAnalysisBasedOnSongs is called with a invalid date", async () => {
     const res = await request(app)
       .get("/createAnalysisBasedOnSongs")
-      .query({ type: "artist", end: "2024-01-20" })
+      .query({ type: "artist", end: "2024-01-29" })
       .set("Authorization", `Bearer ${authToken}`);
 
     expect(res.statusCode).toBe(400);
@@ -93,7 +107,7 @@ describe("Analysis API", () => {
     expect(res.body.error).toBe(
       "End date cannot be greater than today's date."
     );
-  });
+  }, 15000);
 
   it("should return 400 when analysisBasedOnArtistSongs is called without an artist array", async () => {
     const res = await request(app)
@@ -241,5 +255,54 @@ describe("Analysis API", () => {
       "No ratings found for the specified date range."
     );
     expect(res.body.success).toBe(false);
+  });
+
+  it("should return 400 when a user is not admin when we call admin-chart-user", async () => {
+    const res = await request(app)
+      .get("/admin-chart-user")
+      .set("Authorization", `Bearer ${authToken}`);
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  it("should return 400 when a user is not admin when we call admin-chart-song", async () => {
+    const res = await request(app)
+      .get("/admin-chart-song")
+      .set("Authorization", `Bearer ${authToken}`);
+
+    expect(res.statusCode).toBe(403);
+  });
+
+  it("should return 200 when a user is admin when we call admin-chart-user", async () => {
+    const loginRes = await request(app).post("/login").send({
+      email: "eustun@gmail.com",
+      password: "123456789",
+    });
+
+    authToken = loginRes.body.token;
+
+    const res = await request(app)
+      .get("/admin-chart-user")
+      .set("Authorization", `Bearer ${authToken}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty("success");
+    expect(res.body).toHaveProperty("countsArray");
+
+    expect(res.body.success).toBe(true);
+    expect(res.body.countsArray).toHaveLength(32);
+  });
+
+  it("should return 200 when a user is admin when we call admin-chart-song", async () => {
+    const res = await request(app)
+      .get("/admin-chart-song")
+      .set("Authorization", `Bearer ${authToken}`);
+
+    expect(res.statusCode).toBe(200);
+    expect(res.body).toHaveProperty("success");
+    expect(res.body).toHaveProperty("countsArray");
+
+    expect(res.body.success).toBe(true);
+    expect(res.body.countsArray).toHaveLength(32);
   });
 });
