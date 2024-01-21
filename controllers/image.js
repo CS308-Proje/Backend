@@ -12,7 +12,7 @@ exports.getImage = async (req, res, next) => {
       });
     }
 
-    res.setHeader("Content-Type", image.contentType);
+    res.setHeader("Content-Type", "image/png");
     return res.send(image.data);
   } catch (err) {
     res.status(400).json({

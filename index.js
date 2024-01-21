@@ -39,6 +39,10 @@ app.use(notificationsRoutes);
 app.use(analysisRoutes);
 app.use("/images", imageRoutes);
 
+app.get("/", (req, res) => {
+  res.send("Hello World!");
+});
+
 //*
 
 const PORT = process.env.PORT;

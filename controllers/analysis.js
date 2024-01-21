@@ -4,7 +4,7 @@ const Song = require("../models/Song");
 const Album = require("../models/Album");
 const Artist = require("../models/Artist");
 const Rating = require("../models/Rating");
-const puppeteer = require("puppeteer");
+
 const nodeHtmlToImage = require("node-html-to-image");
 const Image = require("../models/Image");
 
@@ -20,7 +20,31 @@ exports.createAnalysisBasedOnSongs = async (req, res, next) => {
 
     var end = req.query.end;
 
-    if (type === null) {
+    const today = new Date();
+    const formattedToday = today.toISOString().split("T")[0];
+
+    if (start > formattedToday) {
+      return res.status(400).json({
+        error: "Start date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
+    if (start >= end) {
+      return res.status(400).json({
+        error: "Start date cannot be greater or equal to end date.",
+        success: false,
+      });
+    }
+
+    if (end > formattedToday) {
+      return res.status(400).json({
+        error: "End date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
+    if (type === null || type === undefined || type === "") {
       return res.status(400).json({
         error: "Please enter a type. Type can be song, album or artist.",
         success: false,
@@ -279,6 +303,30 @@ exports.analysisBasedOnArtistSongs = async (req, res, next) => {
     const start = req.query.start;
     const end = req.query.end;
 
+    const today = new Date();
+    const formattedToday = today.toISOString().split("T")[0];
+
+    if (start > formattedToday) {
+      return res.status(400).json({
+        error: "Start date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
+    if (start >= end) {
+      return res.status(400).json({
+        error: "Start date cannot be greater or equal to end date.",
+        success: false,
+      });
+    }
+
+    if (end > formattedToday) {
+      return res.status(400).json({
+        error: "End date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
     let averageRatings = [];
 
     var songsOfAnArtist = [];
@@ -290,29 +338,50 @@ exports.analysisBasedOnArtistSongs = async (req, res, next) => {
       });
     }
 
+    for (let index = 0; index < artistArray.length; index++) {
+      const element = artistArray[index];
+
+      if (
+        (await Artist.findOne({ userId: userId, artistName: element })) ===
+          null ||
+        element !==
+          (await Artist.findOne({ userId: userId, artistName: element }))
+            .artistName
+      ) {
+        return res.status(400).json({
+          error: `Artist named ${element} does not exist.`,
+          success: false,
+        });
+      }
+    }
+
     for (let i = 0; i < artistArray.length; i++) {
       if (start && end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
           createdAt: { $gte: start, $lte: end },
+          ratingValue: { $ne: null },
         });
       } else if (!start && end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
           createdAt: { $lte: end },
+          ratingValue: { $ne: null },
         });
       } else if (start && !end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
           createdAt: { $gte: start },
+          ratingValue: { $ne: null },
         });
       } else if (!start && !end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
+          ratingValue: { $ne: null },
         });
       }
 
@@ -335,7 +404,7 @@ exports.analysisBasedOnArtistSongs = async (req, res, next) => {
 
       averageRatings.push(averageRating);
     }
-  
+
     return res.status(200).json({
       success: true,
       data: averageRatings,
@@ -359,14 +428,55 @@ exports.analysisBasedOnArtistsSongsCount = async (req, res, next) => {
 
     const end = req.query.end;
 
+    const today = new Date();
+    const formattedToday = today.toISOString().split("T")[0];
+
+    if (start > formattedToday) {
+      return res.status(400).json({
+        error: "Start date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
+    if (start >= end) {
+      return res.status(400).json({
+        error: "Start date cannot be greater or equal to end date.",
+        success: false,
+      });
+    }
+
+    if (end > formattedToday) {
+      return res.status(400).json({
+        error: "End date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
     let songs = [];
     let songsCount = [];
 
-    if (!artistArray) {
+    if (artistArray === null || artistArray.length === 0) {
       return res.status(400).json({
         error: "Please enter an artist name or names.",
         success: false,
       });
+    }
+
+    for (let index = 0; index < artistArray.length; index++) {
+      const element = artistArray[index];
+
+      if (
+        (await Artist.findOne({ userId: userId, artistName: element })) ===
+          null ||
+        element !==
+          (await Artist.findOne({ userId: userId, artistName: element }))
+            .artistName
+      ) {
+        return res.status(400).json({
+          error: `Artist named ${element} does not exist.`,
+          success: false,
+        });
+      }
     }
 
     for (let i = 0; i < artistArray.length; i++) {
@@ -414,68 +524,63 @@ exports.analysisBasedOnArtistsSongsCount = async (req, res, next) => {
   }
 };
 
-
-
 exports.averageRatingForMonth = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
     const userId = user.id;
 
+    const today = new Date();
+    const lastMonthStart = new Date(today);
+
+    lastMonthStart.setMonth(today.getMonth() - 1); // Set to the first day of the last month
+
     const ratings = await Rating.find({
       userId: userId,
-      createdAt: { $gte: new Date(new Date().setDate(new Date().getDate() - 30)) },
+      createdAt: {
+        $gte: lastMonthStart,
+      },
     });
-    
+
     if (!ratings || ratings.length === 0) {
       return res.status(400).json({
-        error: 'No ratings found for the specified date range.',
+        error: "No ratings found for the specified date range.",
         success: false,
       });
-    } 
+    }
 
     const ratingsByDay = {};
-
 
     for (let index = 0; index < ratings.length; index++) {
       const rating = ratings[index];
 
-      const day = rating.createdAt.toISOString().split('T')[0];
+      const day = rating.createdAt.toISOString().split("T")[0];
 
       if (!ratingsByDay[day]) {
         ratingsByDay[day] = [];
       }
       ratingsByDay[day].push(rating.ratingValue);
-      
     }
 
     const labels = Object.keys(ratingsByDay);
     const averages = labels.map((day) => {
       const total = ratingsByDay[day].reduce((acc, val) => acc + val, 0);
-      return total / ratingsByDay[day].length;
+      const average = total / ratingsByDay[day].length;
+      return { date: day, average: average };
     });
-
-
 
     return res.status(200).json({
       success: true,
       data: averages,
     });
-
-
   } catch (err) {
     return res.status(400).json({
       message: err.message,
       success: false,
-    
     });
   }
 };
 
-
-
-
 //* Mobile Routes
-
 
 exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
   try {
@@ -486,6 +591,30 @@ exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
 
     const start = req.query.start;
     const end = req.query.end;
+
+    const today = new Date();
+    const formattedToday = today.toISOString().split("T")[0];
+
+    if (start > formattedToday) {
+      return res.status(400).json({
+        error: "Start date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
+    if (start >= end) {
+      return res.status(400).json({
+        error: "Start date cannot be greater or equal to end date.",
+        success: false,
+      });
+    }
+
+    if (end > formattedToday) {
+      return res.status(400).json({
+        error: "End date cannot be greater than today's date.",
+        success: false,
+      });
+    }
 
     let averageRatings = [];
 
@@ -498,29 +627,50 @@ exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
       });
     }
 
+    for (let index = 0; index < artistArray.length; index++) {
+      const element = artistArray[index];
+
+      if (
+        (await Artist.findOne({ userId: userId, artistName: element })) ===
+          null ||
+        element !==
+          (await Artist.findOne({ userId: userId, artistName: element }))
+            .artistName
+      ) {
+        return res.status(400).json({
+          error: `Artist named ${element} does not exist.`,
+          success: false,
+        });
+      }
+    }
+
     for (let i = 0; i < artistArray.length; i++) {
       if (start && end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
           createdAt: { $gte: start, $lte: end },
+          ratingValue: { $ne: null },
         });
       } else if (!start && end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
           createdAt: { $lte: end },
+          ratingValue: { $ne: null },
         });
       } else if (start && !end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
           createdAt: { $gte: start },
+          ratingValue: { $ne: null },
         });
       } else if (!start && !end) {
         songsOfAnArtist = await Song.find({
           userId: userId,
           mainArtistName: artistArray[i],
+          ratingValue: { $ne: null },
         });
       }
 
@@ -543,7 +693,7 @@ exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
 
       averageRatings.push(averageRating);
     }
-    
+
     const chartDataString = JSON.stringify({
       labels: artistArray,
       datasets: [
@@ -572,8 +722,6 @@ exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
         },
       ],
     });
-    
-    
 
     const htmlContent = `
     <html>
@@ -594,7 +742,7 @@ exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
     </html>
   `;
 
-     const img = await nodeHtmlToImage({
+    const img = await nodeHtmlToImage({
       html: htmlContent,
     });
 
@@ -602,7 +750,7 @@ exports.mobileAnalysisBasedOnArtistSongs = async (req, res, next) => {
     base64Image = "data:image/png;base64," + base64Image;
 
     console.log(averageRatings);
-    
+
     return res.status(200).json({
       success: true,
       base64Image: base64Image,
@@ -626,14 +774,55 @@ exports.mobileAnalysisBasedOnArtistsSongsCount = async (req, res, next) => {
 
     const end = req.query.end;
 
+    const today = new Date();
+    const formattedToday = today.toISOString().split("T")[0];
+
+    if (start > formattedToday) {
+      return res.status(400).json({
+        error: "Start date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
+    if (start >= end) {
+      return res.status(400).json({
+        error: "Start date cannot be greater or equal to end date.",
+        success: false,
+      });
+    }
+
+    if (end > formattedToday) {
+      return res.status(400).json({
+        error: "End date cannot be greater than today's date.",
+        success: false,
+      });
+    }
+
     let songs = [];
     let songsCount = [];
 
-    if (!artistArray) {
+    if (artistArray === null || artistArray.length === 0) {
       return res.status(400).json({
         error: "Please enter an artist name or names.",
         success: false,
       });
+    }
+
+    for (let index = 0; index < artistArray.length; index++) {
+      const element = artistArray[index];
+
+      if (
+        (await Artist.findOne({ userId: userId, artistName: element })) ===
+          null ||
+        element !==
+          (await Artist.findOne({ userId: userId, artistName: element }))
+            .artistName
+      ) {
+        return res.status(400).json({
+          error: `Artist named ${element} does not exist.`,
+          success: false,
+        });
+      }
     }
 
     for (let i = 0; i < artistArray.length; i++) {
@@ -669,7 +858,6 @@ exports.mobileAnalysisBasedOnArtistsSongsCount = async (req, res, next) => {
       songsCount.push(songs.length);
     }
 
-    
     const chartDataString = JSON.stringify({
       labels: artistArray,
       datasets: [
@@ -698,8 +886,7 @@ exports.mobileAnalysisBasedOnArtistsSongsCount = async (req, res, next) => {
         },
       ],
     });
-    
-    
+
     const htmlContent = `
     <html>
       <head>
@@ -722,9 +909,8 @@ exports.mobileAnalysisBasedOnArtistsSongsCount = async (req, res, next) => {
       </body>
     </html>
   `;
-  
 
-     const img = await nodeHtmlToImage({
+    const img = await nodeHtmlToImage({
       html: htmlContent,
     });
 
@@ -743,8 +929,6 @@ exports.mobileAnalysisBasedOnArtistsSongsCount = async (req, res, next) => {
   }
 };
 
-
-
 exports.mobileAverageRatingForMonth = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id);
@@ -752,29 +936,29 @@ exports.mobileAverageRatingForMonth = async (req, res, next) => {
 
     const ratings = await Rating.find({
       userId: userId,
-      createdAt: { $gte: new Date(new Date().setDate(new Date().getDate() - 30)) },
+      createdAt: {
+        $gte: new Date(new Date().setDate(new Date().getDate() - 30)),
+      },
     });
-    
+
     if (!ratings || ratings.length === 0) {
       return res.status(400).json({
-        error: 'No ratings found for the specified date range.',
+        error: "No ratings found for the specified date range.",
         success: false,
       });
-    } 
+    }
 
     const ratingsByDay = {};
-
 
     for (let index = 0; index < ratings.length; index++) {
       const rating = ratings[index];
 
-      const day = rating.createdAt.toISOString().split('T')[0];
+      const day = rating.createdAt.toISOString().split("T")[0];
 
       if (!ratingsByDay[day]) {
         ratingsByDay[day] = [];
       }
       ratingsByDay[day].push(rating.ratingValue);
-      
     }
 
     const labels = Object.keys(ratingsByDay);
@@ -787,9 +971,9 @@ exports.mobileAverageRatingForMonth = async (req, res, next) => {
       labels: labels,
       datasets: [
         {
-          label: 'Average Rating',
-          backgroundColor: 'rgba(75,192,192,0.4)',
-          borderColor: 'rgba(75,192,192,1)',
+          label: "Average Rating",
+          backgroundColor: "rgba(75,192,192,0.4)",
+          borderColor: "rgba(75,192,192,1)",
           borderWidth: 1,
           pointRadius: 5,
           pointHoverRadius: 8,
@@ -821,20 +1005,17 @@ exports.mobileAverageRatingForMonth = async (req, res, next) => {
       html: htmlContent,
     });
 
-    const base64Image = img.toString('base64');
-    const base64ImageUrl = 'data:image/png;base64,' + base64Image;
+    const base64Image = img.toString("base64");
+    const base64ImageUrl = "data:image/png;base64," + base64Image;
 
     return res.status(200).json({
       success: true,
       base64Image: base64ImageUrl,
     });
-
-
   } catch (err) {
     return res.status(400).json({
       message: err.message,
       success: false,
-    
     });
   }
 };

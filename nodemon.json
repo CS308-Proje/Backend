@@ -1,0 +1,8 @@
+{
+  "ignore": [
+    "machine-learning/input.json",
+    "machine-learning/machine-learning.py",
+    "machine-learning/Spotify_Song_Attributes.csv",
+    "output.json"
+  ]
+}

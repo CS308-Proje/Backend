@@ -82,4 +82,32 @@ router.delete(
   userController.deleteArtist
 );
 
+router.get(
+  "/admin-chart-user",
+  isAuth.protect,
+  isAuth.authorize("admin"),
+  userController.getUserRegistrationInAMonth
+);
+
+router.get(
+  "/mobile-admin-chart-user",
+  isAuth.protect,
+  isAuth.authorize("admin"),
+  userController.MOBILEgetUserRegistrationInAMonth
+);
+
+router.get(
+  "/admin-chart-songs",
+  isAuth.protect,
+  isAuth.authorize("admin"),
+  userController.getAddedSongInAMonth
+);
+
+router.get(
+  "/mobile-admin-chart-songs",
+  isAuth.protect,
+  isAuth.authorize("admin"),
+  userController.MOBILEgetAddedSongInAMonth
+);
+
 module.exports = router;

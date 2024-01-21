@@ -6,6 +6,8 @@ const songController = require("../controllers/song");
 const { protect } = require("../middlewares/isAuth");
 const authenticationController = require("../controllers/authentication");
 const Song = require("../models/Song");
+const Album = require("../models/Album");
+const Artist = require("../models/Artist");
 const app = express();
 
 app.use(express.json());
@@ -32,6 +34,7 @@ app.post(
 
 describe("Song API", () => {
   let spotifySongData = {};
+  let spotifySongItems = {};
   let testSongId; // id of the song we want to test
   let authToken;
   beforeAll(async () => {
@@ -235,6 +238,49 @@ describe("Song API", () => {
     expect(res.body.song).toHaveProperty("createdAt");
     expect(res.body.song).toHaveProperty("_id");
 
-    await Song.deleteOne({ _id: res.body.song._id });
+    spotifySongItems.songId = res.body.song._id;
+    spotifySongItems.albumId = res.body.song.albumId;
+    spotifySongItems.mainArtistId = res.body.song.mainArtistId;
+    spotifySongItems.featuringArtistId = res.body.song.featuringArtistId;
+  });
+
+  it("if a song is added, an album and artist must be created", async () => {
+    var album = await Album.findOne({ _id: spotifySongItems.albumId });
+
+    expect(album).toHaveProperty("_id");
+    expect(album).toHaveProperty("userId");
+    expect(album).toHaveProperty("name");
+    expect(album).toHaveProperty("createdAt");
+    expect(album).toHaveProperty("albumImg");
+    expect(album).toHaveProperty("name");
+    expect(album).toHaveProperty("release_date");
+
+    //? For artists.
+
+    const artist = await Artist.findOne({ _id: spotifySongItems.mainArtistId });
+
+    expect(artist).toHaveProperty("_id");
+    expect(artist).toHaveProperty("userId");
+    expect(artist).toHaveProperty("artistName");
+    expect(artist).toHaveProperty("createdAt");
+    expect(artist).toHaveProperty("artistImg");
+
+    //? Deletion.
+
+    await Song.deleteOne({ _id: spotifySongItems.songId });
+    await Album.deleteOne({ _id: spotifySongItems.albumId });
+    await Artist.deleteOne({ _id: spotifySongItems.mainArtistId });
+
+    if (spotifySongItems.featuringArtistId.length > 0) {
+      for (
+        let index = 0;
+        index < spotifySongItems.featuringArtistId.length;
+        index++
+      ) {
+        await Artist.deleteOne({
+          _id: spotifySongItems.featuringArtistId.featuringArtistId[index],
+        });
+      }
+    }
   });
 });

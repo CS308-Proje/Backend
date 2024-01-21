@@ -2,6 +2,7 @@ const Rating = require("../models/Rating");
 const Song = require("../models/Song");
 const User = require("../models/User");
 const { Parser } = require("json2csv");
+const fs = require("fs");
 
 exports.dataExport = async (req, res) => {
   try {
@@ -10,6 +11,7 @@ exports.dataExport = async (req, res) => {
     const artistName = req.query.artist;
     const rate = req.query.rating;
     let format = req.query.format;
+    //const filePath = req.body.path;
 
     if (format !== "csv") {
       format = "json";
@@ -48,6 +50,10 @@ exports.dataExport = async (req, res) => {
     }
 
     const fileName = `exportedData.${format}`;
+
+    //const fileFullPath = `${filePath}/${fileName}`;
+
+    //fs.writeFileSync(fileFullPath, fileData);
 
     // Set headers separately
     res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);

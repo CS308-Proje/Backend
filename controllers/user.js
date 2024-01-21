@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const express = require("express");
+const nodeHtmlToImage = require("node-html-to-image");
 const User = require("../models/User");
 const Artist = require("../models/Artist");
 const Album = require("../models/Album");
@@ -359,6 +360,281 @@ exports.deleteSong = async (req, res, next) => {
     return res.status(200).json({
       message: "Song successfully deleted.",
       success: true,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error: err.message,
+      success: false,
+    });
+  }
+};
+
+//* Admin chart for how many user are registered in a month.
+
+function generateDateRange(startDate, endDate) {
+  const dateRange = [];
+  let currentDate = new Date(startDate);
+
+  while (currentDate <= endDate) {
+    dateRange.push(new Date(currentDate));
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return dateRange;
+}
+
+exports.getUserRegistrationInAMonth = async (req, res, next) => {
+  try {
+    const today = new Date();
+    const lastMonthStart = new Date(today);
+
+    lastMonthStart.setMonth(today.getMonth() - 1); // Set to the first day of the last month
+
+    // Fetch registrations within the date range
+    const registrations = await User.find(
+      {
+        createdAt: { $gte: lastMonthStart, $lte: today },
+      },
+      "createdAt"
+    ).lean();
+
+    // Generate a complete date range between lastMonthStart and today
+    const dateRange = generateDateRange(lastMonthStart, today);
+
+    const groupedRegistrations = {};
+    registrations.forEach((user) => {
+      const dateKey = user.createdAt.toISOString().split("T")[0];
+      if (!groupedRegistrations[dateKey]) {
+        groupedRegistrations[dateKey] = 1;
+      } else {
+        groupedRegistrations[dateKey]++;
+      }
+    });
+
+    const countsArray = dateRange.map((date) => ({
+      date: date.toISOString().split("T")[0],
+      count: groupedRegistrations[date.toISOString().split("T")[0]] || 0,
+    }));
+
+    return res.status(200).json({
+      countsArray,
+      success: true,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error: err.message,
+      success: false,
+    });
+  }
+};
+
+exports.MOBILEgetUserRegistrationInAMonth = async (req, res, next) => {
+  try {
+    const today = new Date();
+    const lastMonthStart = new Date(today);
+
+    lastMonthStart.setMonth(today.getMonth() - 1); // Set to the first day of the last month
+
+    // Fetch registrations within the date range
+    const registrations = await User.find(
+      {
+        createdAt: { $gte: lastMonthStart, $lte: today },
+      },
+      "createdAt"
+    ).lean();
+
+    // Generate a complete date range between lastMonthStart and today
+    const dateRange = generateDateRange(lastMonthStart, today);
+
+    const groupedRegistrations = {};
+    registrations.forEach((user) => {
+      const dateKey = user.createdAt.toISOString().split("T")[0];
+      if (!groupedRegistrations[dateKey]) {
+        groupedRegistrations[dateKey] = 1;
+      } else {
+        groupedRegistrations[dateKey]++;
+      }
+    });
+
+    const countsArray = dateRange.map((date) => ({
+      date: date.toISOString().split("T")[0],
+      count: groupedRegistrations[date.toISOString().split("T")[0]] || 0,
+    }));
+
+    const chartDataString = JSON.stringify({
+      labels: countsArray.map((item) => item.date),
+      datasets: [
+        {
+          label: "Count",
+          backgroundColor: "rgba(75,192,192,0.4)",
+          borderColor: "rgba(75,192,192,1)",
+          borderWidth: 1,
+          pointRadius: 5,
+          pointHoverRadius: 8,
+          data: countsArray.map((item) => item.count),
+        },
+      ],
+    });
+
+    const htmlContent = `
+    <html>
+      <head>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      </head>
+      <body>
+        <canvas id="myChart"></canvas>
+        <script>
+          var ctx = document.getElementById('myChart').getContext('2d');
+          var chartData = ${chartDataString};
+          new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+          });
+        </script>
+      </body>
+    </html>
+    `;
+
+    const img = await nodeHtmlToImage({
+      html: htmlContent,
+    });
+
+    const base64Image = img.toString("base64");
+    const base64ImageUrl = "data:image/png;base64," + base64Image;
+
+    return res.status(200).json({
+      success: true,
+      base64Image: base64ImageUrl,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error: err.message,
+      success: false,
+    });
+  }
+};
+
+exports.getAddedSongInAMonth = async (req, res, next) => {
+  try {
+    const today = new Date();
+    const lastMonthStart = new Date(today);
+
+    lastMonthStart.setMonth(today.getMonth() - 1); // Set to the first day of the last month
+
+    const songs = await Song.find(
+      {
+        createdAt: { $gte: lastMonthStart, $lte: today },
+      },
+      "createdAt"
+    ).lean();
+
+    // Generate a complete date range between lastMonthStart and today
+    const dateRange = generateDateRange(lastMonthStart, today);
+
+    const groupedSongs = {};
+    songs.forEach((user) => {
+      const dateKey = user.createdAt.toISOString().split("T")[0];
+      if (!groupedSongs[dateKey]) {
+        groupedSongs[dateKey] = 1;
+      } else {
+        groupedSongs[dateKey]++;
+      }
+    });
+
+    const countsArray = dateRange.map((date) => ({
+      date: date.toISOString().split("T")[0],
+      count: groupedSongs[date.toISOString().split("T")[0]] || 0,
+    }));
+
+    return res.status(200).json({
+      countsArray,
+      success: true,
+    });
+  } catch (err) {
+    return res.status(400).json({
+      error: err.message,
+      success: false,
+    });
+  }
+};
+
+exports.MOBILEgetAddedSongInAMonth = async (req, res, next) => {
+  try {
+    const today = new Date();
+    const lastMonthStart = new Date(today);
+
+    lastMonthStart.setMonth(today.getMonth() - 1); // Set to the first day of the last month
+
+    // Fetch registrations within the date range
+    const songs = await Song.find(
+      {
+        createdAt: { $gte: lastMonthStart, $lte: today },
+      },
+      "createdAt"
+    ).lean();
+
+    // Generate a complete date range between lastMonthStart and today
+    const dateRange = generateDateRange(lastMonthStart, today);
+
+    const groupedSongs = {};
+    songs.forEach((user) => {
+      const dateKey = user.createdAt.toISOString().split("T")[0];
+      if (!groupedSongs[dateKey]) {
+        groupedSongs[dateKey] = 1;
+      } else {
+        groupedSongs[dateKey]++;
+      }
+    });
+
+    const countsArray = dateRange.map((date) => ({
+      date: date.toISOString().split("T")[0],
+      count: groupedSongs[date.toISOString().split("T")[0]] || 0,
+    }));
+
+    const chartDataString = JSON.stringify({
+      labels: countsArray.map((item) => item.date),
+      datasets: [
+        {
+          label: "Count",
+          backgroundColor: "rgba(75,192,192,0.4)",
+          borderColor: "rgba(75,192,192,1)",
+          borderWidth: 1,
+          pointRadius: 5,
+          pointHoverRadius: 8,
+          data: countsArray.map((item) => item.count),
+        },
+      ],
+    });
+
+    const htmlContent = `
+    <html>
+      <head>
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      </head>
+      <body>
+        <canvas id="myChart"></canvas>
+        <script>
+          var ctx = document.getElementById('myChart').getContext('2d');
+          var chartData = ${chartDataString};
+          new Chart(ctx, {
+            type: 'line',
+            data: chartData,
+          });
+        </script>
+      </body>
+    </html>
+    `;
+
+    const img = await nodeHtmlToImage({
+      html: htmlContent,
+    });
+
+    const base64Image = img.toString("base64");
+    const base64ImageUrl = "data:image/png;base64," + base64Image;
+
+    return res.status(200).json({
+      success: true,
+      base64Image: base64ImageUrl,
     });
   } catch (err) {
     return res.status(400).json({
