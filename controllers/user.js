@@ -643,3 +643,28 @@ exports.MOBILEgetAddedSongInAMonth = async (req, res, next) => {
     });
   }
 };
+
+/*
+exports.DELETESUPERADMIN = async (req, res, next) => {
+  try {
+    const user = await User.deleteMany({ username: req.params.username });
+
+    if (!user) {
+      return res.status(400).json({
+        message: "Something went wrong.",
+        success: false,
+      });
+    }
+
+    return res.status(200).json({
+      message: "User successfully deleted.",
+      success: true,
+    });
+  } catch (err) {
+    res.status(400).json({
+      error: err,
+      success: false,
+    });
+  }
+};
+*/

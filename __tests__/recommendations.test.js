@@ -26,10 +26,12 @@ app.get(
 
 describe("Song Recommendations API", () => {
   let authToken;
-  let userIdLegit = "65736a0b40dc3d15ae6ace4e";
+  let userIdLegit = "65ad51d5dd3aa481270929d8";
   let userIdNotLegit = "65aaa8fbcde1c3833896d6ef";
   let mal = "65ad102ae13528b5bb932741";
-  let ziya = "65736c04e1ed932179433b75";
+  let dummy2 = "65ad44345aa70744edc20f56";
+  let ratingTest = "65ad51d5dd3aa481270929d8";
+  let dumb = "65ad570c125dece29c4caaed";
 
   beforeAll(async () => {
     await mongoose.connect(process.env.MONGO_URI, {
@@ -387,11 +389,11 @@ describe("Song Recommendations API", () => {
 
     expect(loginRes.statusCode).toEqual(200);
     authToken = loginRes.body.token;
-  });
+  }, 50000);
 
   afterAll(async () => {
     await mongoose.connection.close();
-  });
+  }, 5000);
 
   //? Song Recommendations
 
@@ -415,7 +417,7 @@ describe("Song Recommendations API", () => {
   }, 50000);
 
   it("should return 200 when a user is logged in and have rated songs", async () => {
-    const res = await getRecommendationsBasedOnSongRating(userIdLegit);
+    const res = await getRecommendationsBasedOnSongRating(dummy2);
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("songs");
@@ -538,7 +540,7 @@ describe("Song Recommendations API", () => {
   }, 50000);
 
   it("should return 200 when a user is logged in and have rated songs", async () => {
-    const res = await getRecommendationsBasedOnTemporalValues(userIdLegit);
+    const res = await getRecommendationsBasedOnTemporalValues(dummy2);
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("songs");
@@ -579,7 +581,7 @@ describe("Song Recommendations API", () => {
   }, 50000);
 
   it("should return 400 when the user's friend has no song", async () => {
-    const res = await getRecommendationsBasedOnFriendActivity(userIdLegit);
+    const res = await getRecommendationsBasedOnFriendActivity(dumb);
 
     expect(res.statusCode).toEqual(400);
     expect(res.body).toHaveProperty("message");
@@ -588,7 +590,7 @@ describe("Song Recommendations API", () => {
   }, 50000);
 
   it("should return 200 when the user's friend has song", async () => {
-    const res = await getRecommendationsBasedOnFriendActivity(ziya);
+    const res = await getRecommendationsBasedOnFriendActivity(dummy2);
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("songs");

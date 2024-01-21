@@ -16,10 +16,9 @@ app.post("/rateAlbum/:albumId", protect, rateAlbum);
 app.post("/rateArtist/:artistId", protect, rateArtist);
 
 describe("Rating API - Song", () => {
-  let existingUserId = "65aa952320e98f6c21a1d4f7"; // Existing user ID
-  let existingSongId = "65aa9556c54da23e4de4430a"; // Existing song ID
-  let existingAlbumId = "65aa9555c54da23e4de442ff"; // Existing album ID
-  let existingArtistId = "65aa9555c54da23e4de44302"; // Existing artist ID
+  let existingSongId = "65ad51dedd3aa481270929e5"; // Existing song ID
+  let existingAlbumId = "65ad51dddd3aa481270929de"; // Existing album ID
+  let existingArtistId = "65ad51dedd3aa481270929e1"; // Existing artist ID
   let authToken;
 
   beforeAll(async () => {
@@ -29,8 +28,8 @@ describe("Rating API - Song", () => {
     });
 
     const loginRes = await request(app).post("/login").send({
-      email: "testuser1702056245215@example.com", //existing user form database
-      password: "password123",
+      email: "dummyForRatigTest@gmail.com", //existing user form database
+      password: "123456789",
     });
 
     expect(loginRes.statusCode).toEqual(200);
@@ -46,7 +45,7 @@ describe("Rating API - Song", () => {
       .post(`/rateSong/${existingSongId}`)
       .set("Authorization", `Bearer ${authToken}`)
       .send({
-        ratingValue: 3,
+        ratingValue: 5,
       });
 
     expect(res.statusCode).toEqual(200);
@@ -58,7 +57,7 @@ describe("Rating API - Song", () => {
       .post(`/rateAlbum/${existingAlbumId}`)
       .set("Authorization", `Bearer ${authToken}`)
       .send({
-        ratingValue: 4,
+        ratingValue: 5,
       });
 
     expect(res.statusCode).toEqual(200);

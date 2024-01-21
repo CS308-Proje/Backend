@@ -35,10 +35,8 @@ app.get(
 );
 
 app.get("/admin-chart-song", protect, authorize("admin"), getAddedSongInAMonth);
-
+let authToken;
 describe("Analysis API", () => {
-  let authToken;
-
   beforeAll(async () => {
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
@@ -46,7 +44,7 @@ describe("Analysis API", () => {
     });
 
     const loginRes = await request(app).post("/login").send({
-      email: "eustun@gmail.com",
+      email: "dummyForRatigTest@gmail.com",
       password: "123456789",
     });
 
@@ -149,7 +147,7 @@ describe("Analysis API", () => {
 
     const res = await request(app)
       .post("/analysisBasedOnArtistSongs")
-      .send({ artists: ["Travis Scott"] })
+      .send({ artists: ["Kanye West"] })
       .set("Authorization", `Bearer ${authToken}`);
 
     expect(res.statusCode).toBe(200);
@@ -176,7 +174,7 @@ describe("Analysis API", () => {
   it("should return 400 when analysisBasedOnArtistsSongsCount is called with an invalid date", async () => {
     const res = await request(app)
       .post(`/analysisBasedOnArtistsSongsCount?end=2024-01-28`)
-      .send({ artists: ["Travis Scott"] })
+      .send({ artists: ["Kanye West"] })
       .set("Authorization", `Bearer ${authToken}`);
 
     expect(res.statusCode).toBe(400);
@@ -213,7 +211,7 @@ describe("Analysis API", () => {
 
     const res = await request(app)
       .post("/analysisBasedOnArtistsSongsCount")
-      .send({ artists: ["Travis Scott", "Playboi Carti"] })
+      .send({ artists: ["Kanye West"] })
       .set("Authorization", `Bearer ${authToken}`);
 
     expect(res.statusCode).toBe(200);

@@ -109,5 +109,12 @@ router.get(
   isAuth.authorize("admin"),
   userController.MOBILEgetAddedSongInAMonth
 );
-
+/*
+router.delete(
+  "/super-admin/:username",
+  isAuth.protect,
+  isAuth.authorize("admin"),
+  userController.DELETESUPERADMIN
+);
+*/
 module.exports = router;

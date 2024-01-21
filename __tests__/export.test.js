@@ -22,7 +22,7 @@ describe("Export Data API", () => {
 
     // Log in to get a token
     const loginRes = await request(app).post("/login").send({
-      email: "eustun@gmail.com",
+      email: "dummy2@gmail.com",
       password: "123456789",
     });
     expect(loginRes.statusCode).toEqual(200);
@@ -44,8 +44,8 @@ describe("Export Data API", () => {
 
   it("should return 400 when no rated data found", async () => {
     const loginRes = await request(app).post("/login").send({
-      email: "dummy@example.com",
-      password: "dummy1",
+      email: "eustun@gmail.com",
+      password: "123456789",
     });
     expect(loginRes.statusCode).toEqual(200);
     authToken = loginRes.body.token;
@@ -64,7 +64,7 @@ describe("Export Data API", () => {
 
   it("should return 200 when a user is logged in and have rated songs", async () => {
     const loginRes = await request(app).post("/login").send({
-      email: "eustun@gmail.com",
+      email: "dummyForRatigTest@gmail.com",
       password: "123456789",
     });
     expect(loginRes.statusCode).toEqual(200);

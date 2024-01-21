@@ -4,6 +4,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const User = require("../models/User");
 const nodemailerMock = require("nodemailer-mock");
+const jwt = require("jsonwebtoken");
 const {
   register,
   login,
@@ -28,6 +29,8 @@ app.post("/logout", logout);
 app.post("/forgotpassword", forgotPassword);
 //app.put('/resetpassword/:resetToken', resetPassword);
 
+let userId;
+
 describe("Authentication API", () => {
   let resetToken; // Token captured from the forgot password test
   beforeAll(async () => {
@@ -36,12 +39,13 @@ describe("Authentication API", () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-  });
+  }, 50000);
 
   afterAll(async () => {
     // Disconnect and clean up the test database
+    await User.deleteMany({ _id: userId });
     await mongoose.connection.close();
-  });
+  }, 50000);
   const randomEmail = `testuser${Date.now()}@example.com`; // Unique email for multiple tests
   it("should register a new user", async () => {
     const res = await request(app).post("/register").send({
@@ -51,10 +55,15 @@ describe("Authentication API", () => {
       password: "password123",
     });
 
+    const token = res.body.token;
+    const decoded = await jwt.verify(token, process.env.JWT_SECRET);
+
+    userId = decoded.id;
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("token");
+
     // Additional assertions...
-  });
+  }, 50000);
 
   it("should login a user", async () => {
     const res = await request(app).post("/login").send({
@@ -64,7 +73,7 @@ describe("Authentication API", () => {
 
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("token");
-  });
+  }, 50000);
 
   it("should log out a user", async () => {
     // First, log in to get a token
@@ -84,7 +93,7 @@ describe("Authentication API", () => {
     expect(logoutRes.statusCode).toEqual(200);
     // Check if the 'token' cookie was set to 'none' or similar
     expect(logoutRes.headers["set-cookie"][0]).toMatch(/token=none/);
-  });
+  }, 50000);
 
   it("should send a forgot password email", async () => {
     const res = await request(app)
@@ -99,7 +108,7 @@ describe("Authentication API", () => {
 
     const resetEmail = sentEmails.find((email) => email.to === randomEmail);
     resetToken = extractTokenFromEmail(resetEmail);
-  });
+  }, 50000);
 
   /*it('should reset the password using the token', async () => {
     const newPassword = 'newPassword123';
