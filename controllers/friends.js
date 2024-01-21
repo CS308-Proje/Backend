@@ -1,37 +1,6 @@
 const User = require("../models/User");
 const ErrorResponse = require("../error/error-response");
 const Invitation = require("../models/Invitation");
-/*
-exports.addFriend = async (req) => {
-  try {
-    const { userId, friendId } = req.body;
-
-    const user = await User.findById(userId);
-    const friend = await User.findById(friendId);
-
-    if (!user || !friend) {
-      return res.status(400).json({
-        success: false,
-        message: "User or friend not found",
-      });
-    }
-
-    if (
-      user.friends.some((friend) => friend.toString() === friendId.toString())
-    ) {
-      console.log("Already friends");
-    } else {
-      user.friends.push(friendId);
-      friend.friends.push(userId);
-
-      await user.save();
-      await friend.save();
-    }
-  } catch (err) {
-    console.log(err.message);
-  }
-};
-*/
 
 exports.addFriend = async (userId, friendId, invitationId) => {
   // -1 means that the user or friend was not found
