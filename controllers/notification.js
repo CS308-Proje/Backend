@@ -69,9 +69,9 @@ exports.getAllNotifications = async (req, res, next) => {
 
     if (
       allNotifications.invitations === "No pending invitations at the time" &&
-      allNotifications.friendActivities === "No friend activity at the time"
+      allNotifications.friendActivities === "No new friend activity."
     ) {
-      return res.status(400).json({ message: "No notifications" });
+      return res.status(201).json({ message: "No notifications" });
     }
 
     return res.status(200).json(allNotifications);
