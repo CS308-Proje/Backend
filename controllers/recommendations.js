@@ -633,6 +633,10 @@ exports.getRecommendationsBasedOnFriendActivity = async (
       });
 
       if (friendSongs.length === 0) {
+        if (limitResponse) {
+          return "No friend activity at the time";
+        }
+
         return res.status(200).json({
           message:
             "Your friends did not rate any music higher or equal to 4 or he does not have any song.",

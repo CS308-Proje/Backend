@@ -20,7 +20,6 @@ app.delete("/artists/:id", protect, artistContoller.deleteArtist);
 app.put("/artists/:id", protect, artistContoller.updateArtist);
 app.post("/add-song-not-from-spotify", protect, addSongThatIsNotFromSpotifyAPI);
 
-
 describe("Artist API", () => {
   let authToken;
   let testAlbumId;
@@ -59,9 +58,9 @@ describe("Artist API", () => {
 
   it("should add a song", async () => {
     const songData = {
-      songName: "Test Song1",
-      mainArtistName: "Test Artist1",
-      albumName: "Test Album1",
+      songName: "Test Song8547",
+      mainArtistName: "Test Artist65451",
+      albumName: "Test Album4561",
       featuringArtistNames: [],
       release_date: "2021-01-02",
     };
@@ -94,12 +93,12 @@ describe("Artist API", () => {
     const updateArtistData = {
       artistName: "Updated Test Artist",
     };
-    
+
     const res = await request(app)
       .put(`/artists/${testArtistId}`)
       .set("Authorization", `Bearer ${authToken}`)
       .send(updateArtistData);
-    console.log(res.body)
+
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("artist");
     expect(res.body.artist.artistName).toEqual("Updated Test Artist");

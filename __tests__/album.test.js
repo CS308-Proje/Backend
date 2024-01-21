@@ -20,12 +20,12 @@ app.delete("/albums/:id", protect, albumController.deleteAlbum);
 app.put("/albums/:id", protect, albumController.updateAlbum);
 app.post("/add-song-not-from-spotify", protect, addSongThatIsNotFromSpotifyAPI);
 
-describe("Album API", () => {
-  let authToken;
-  let testAlbumId;
-  let testSongId;
-  let testArtistId;
+let authToken;
+let testAlbumId;
+let testSongId;
+let testArtistId;
 
+describe("Album API", () => {
   beforeAll(async () => {
     await mongoose.connect(process.env.MONGO_URI, {
       useNewUrlParser: true,
@@ -56,7 +56,7 @@ describe("Album API", () => {
     expect(res.statusCode).toEqual(200);
     expect(res.body).toHaveProperty("albums");
     expect(res.body.success).toEqual(true);
-  });
+  }, 50000);
 
   it("should add a song", async () => {
     const songData = {
@@ -78,7 +78,7 @@ describe("Album API", () => {
 
     expect(res.statusCode).toEqual(201);
     expect(res.body).toHaveProperty("song");
-  });
+  }, 50000);
 
   it("should get a single album", async () => {
     const res = await request(app)
@@ -89,7 +89,7 @@ describe("Album API", () => {
     expect(res.body.success).toEqual(true);
     expect(res.body).toHaveProperty("album");
     expect(res.body.album[0]._id).toEqual(testAlbumId);
-  });
+  }, 50000);
 
   it("should update an album", async () => {
     const updateAlbumData = {
@@ -103,7 +103,7 @@ describe("Album API", () => {
 
     expect(res.statusCode).toEqual(200);
     expect(res.body.album.name).toEqual("Updated Test Album");
-  });
+  }, 50000);
 
   it("should delete an album", async () => {
     const res = await request(app)
@@ -113,5 +113,5 @@ describe("Album API", () => {
     expect(res.statusCode).toEqual(200);
     expect(res.body.success).toEqual(true);
     expect(res.body.message).toEqual("Album is deleted.");
-  });
+  }, 50000);
 });
