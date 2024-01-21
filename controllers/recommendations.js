@@ -674,7 +674,7 @@ exports.getRecommendationsBasedOnFriendActivity = async (
 
         const songToRecommend = {
           recommendedBy: friendWhoRecommendedSong.username,
-          recommendedSong: friendSong,
+          recommendedSong: friendSongWithoutId,
         };
 
         recommendedSongs.push(songToRecommend);
