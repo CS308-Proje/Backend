@@ -72,7 +72,6 @@ describe("Album API", () => {
       .set("Authorization", `Bearer ${authToken}`)
       .send(songData);
 
-    console.log(res.body);
     testAlbumId = res.body.song.albumId;
     testSongId = res.body.song._id;
     testArtistId = res.body.song.mainArtistId;

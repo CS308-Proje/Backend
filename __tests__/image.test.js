@@ -37,7 +37,7 @@ describe("Image API", () => {
   });
 
   it("should successfully get an image", async () => {
-    const imageId = "65abb894d556473d4735fd0f";
+    const imageId = "65ad06057a7c38fb373c215e";
 
     const res = await request(app).get(`/${imageId}`);
 
